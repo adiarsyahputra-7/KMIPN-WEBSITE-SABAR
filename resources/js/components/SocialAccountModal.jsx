@@ -16,26 +16,114 @@ const InstagramIcon = () => (
 export default function SocialAccountModal({ isOpen, onClose, currentAccount, onSelectAccount, onSyncLiveFeed }) {
   if (!isOpen) return null;
 
-  const mockAccounts = [
+  const [accounts, setAccounts] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [showAddForm, setShowAddForm] = React.useState(false);
+  const [newPlatform, setNewPlatform] = React.useState('instagram');
+  const [newHandle, setNewHandle] = React.useState('');
+  const [newFollowers, setNewFollowers] = React.useState('');
+  const [adding, setAdding] = React.useState(false);
+
+  const fetchAccounts = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/social-accounts', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setAccounts(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch social accounts:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchAccounts();
+  }, []);
+
+  const handleAddAccount = async (e) => {
+    e.preventDefault();
+    if (!newHandle.trim()) return;
+
+    setAdding(true);
+    const token = localStorage.getItem('auth_token');
+
+    try {
+      const response = await fetch('/api/social-accounts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          platform: newPlatform,
+          handle: newHandle,
+          followers_count: parseInt(newFollowers) || 12500,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setAccounts(prev => [...prev, data.account]);
+        onSelectAccount(data.account);
+        setNewHandle('');
+        setNewFollowers('');
+        setShowAddForm(false);
+      } else {
+        alert("Gagal menambahkan akun sosial.");
+      }
+    } catch (err) {
+      console.error("Failed to add social account:", err);
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const handleDeleteAccount = async (id, e) => {
+    e.stopPropagation();
+    if (!confirm("Apakah Anda yakin ingin melepaskan koneksi akun ini?")) return;
+
+    const token = localStorage.getItem('auth_token');
+    try {
+      const response = await fetch(`/api/social-accounts/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        setAccounts(prev => prev.filter(acc => acc.id !== id));
+      }
+    } catch (err) {
+      console.error("Failed to delete account:", err);
+    }
+  };
+
+  // Fallback demo accounts if empty
+  const displayAccounts = accounts.length > 0 ? accounts : [
     {
+      id: 'demo-1',
       handle: "@official_sabar_brand",
-      name: "SABAR Official Brand",
-      followers: "128.4K",
-      postsCount: "420",
+      platform: "instagram",
+      followers_count: 128400,
       avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
     },
     {
-      handle: "@kalyca_creator",
-      name: "Kalyca Kyla (Public Figure)",
-      followers: "892.1K",
-      postsCount: "1,240",
-      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80",
-    },
-    {
-      handle: "@agensi_kreatif_id",
-      name: "Agensi Manajemen Reputasi",
-      followers: "45.2K",
-      postsCount: "310",
+      id: 'demo-2',
+      handle: "@adiar_tiktok",
+      platform: "tiktok",
+      followers_count: 45000,
       avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80",
     },
   ];
@@ -52,7 +140,7 @@ export default function SocialAccountModal({ isOpen, onClose, currentAccount, on
             </div>
             <div>
               <h3 className="text-sm font-bold text-slate-900 font-['Plus_Jakarta_Sans']">
-                Integrasi Media Sosial
+                Integrasi Media Sosial (MySQL DB)
               </h3>
               <p className="text-[11px] text-slate-500">
                 Instagram Graph API & TikTok API
@@ -68,45 +156,101 @@ export default function SocialAccountModal({ isOpen, onClose, currentAccount, on
         </div>
 
         {/* Body */}
-        <div className="p-6 space-y-4">
-          <p className="text-xs text-slate-500">
-            Pilih akun media sosial yang sedang dipantau oleh modul penapisan otomatis:
-          </p>
+        <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-slate-500">
+              Pilih akun media sosial yang sedang dipantau oleh penapisan otomatis:
+            </p>
+            <button
+              onClick={() => setShowAddForm(!showAddForm)}
+              className="text-xs font-bold text-teal-600 hover:underline"
+            >
+              {showAddForm ? "Batal" : "+ Tambah Akun"}
+            </button>
+          </div>
 
-          <div className="space-y-2">
-            {mockAccounts.map((acc) => {
-              const isSelected = currentAccount?.handle === acc.handle;
-              return (
-                <div
-                  key={acc.handle}
-                  onClick={() => onSelectAccount(acc)}
-                  className={`p-3.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
-                    isSelected
-                      ? 'bg-emerald-50/60 border-emerald-300 shadow-xs'
-                      : 'bg-white border-slate-200 hover:border-slate-300'
-                  }`}
+          {/* Form Add Account */}
+          {showAddForm && (
+            <form onSubmit={handleAddAccount} className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+              <span className="text-xs font-bold text-slate-800">Hubungkan Akun Sosial Media Baru</span>
+              <div className="grid grid-cols-2 gap-2">
+                <select
+                  value={newPlatform}
+                  onChange={(e) => setNewPlatform(e.target.value)}
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800"
                 >
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={acc.avatar}
-                      alt={acc.name}
-                      className="w-9 h-9 rounded-full object-cover border border-slate-200"
-                    />
-                    <div>
-                      <p className="text-xs font-bold text-slate-900">{acc.name}</p>
-                      <p className="text-[11px] text-slate-500">{acc.handle} • {acc.followers} Pengikut</p>
+                  <option value="instagram">Instagram</option>
+                  <option value="tiktok">TikTok</option>
+                  <option value="youtube">YouTube</option>
+                </select>
+                <input
+                  type="text"
+                  placeholder="@handle_akun"
+                  required
+                  value={newHandle}
+                  onChange={(e) => setNewHandle(e.target.value)}
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 placeholder-slate-400"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={adding}
+                className="w-full py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition-all shadow-xs"
+              >
+                {adding ? "Menyimpan..." : "Simpan Akun ke Database"}
+              </button>
+            </form>
+          )}
+
+          {/* Accounts List */}
+          <div className="space-y-2">
+            {loading ? (
+              <p className="text-xs text-center py-4 text-slate-400 animate-pulse">Memuat daftar akun sosmed...</p>
+            ) : (
+              displayAccounts.map((acc) => {
+                const isSelected = currentAccount?.handle === acc.handle || currentAccount?.id === acc.id;
+                return (
+                  <div
+                    key={acc.id || acc.handle}
+                    onClick={() => onSelectAccount(acc)}
+                    className={`p-3.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
+                      isSelected
+                        ? 'bg-emerald-50/60 border-emerald-300 shadow-xs'
+                        : 'bg-white border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-700 text-xs border border-slate-200">
+                        {acc.platform ? acc.platform[0].toUpperCase() : "I"}
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-900">{acc.handle}</p>
+                        <p className="text-[11px] text-slate-500 uppercase">{acc.platform} • {(acc.followers_count || 12500).toLocaleString()} Pengikut</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {isSelected && (
+                        <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                          <CheckCircle2 className="w-3 h-3" />
+                          Aktif
+                        </span>
+                      )}
+                      {acc.id && typeof acc.id === 'number' && (
+                        <button
+                          type="button"
+                          onClick={(e) => handleDeleteAccount(acc.id, e)}
+                          title="Hapus Koneksi"
+                          className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                   </div>
-
-                  {isSelected && (
-                    <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
-                      <CheckCircle2 className="w-3 h-3" />
-                      Aktif
-                    </span>
-                  )}
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
 
           {/* Sync Button */}

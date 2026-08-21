@@ -12,39 +12,60 @@ import { ShieldCheck, Sparkles, Heart, Activity } from 'lucide-react';
 
 export default function Dashboard({ user, onLogout }) {
   const [comments, setComments] = useState([]);
+  const [apiStats, setApiStats] = useState(null);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isRehatModalOpen, setIsRehatModalOpen] = useState(false);
   const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
   const [connectedAccount, setConnectedAccount] = useState({
-    handle: "@official_sabar_brand",
-    name: "SABAR Official Brand",
-    followers: "128.4K",
+    handle: "@adiarsyahputra",
+    platform: "instagram",
+    followers_count: 12500,
   });
 
-  useEffect(() => {
-    const fetchComments = async () => {
-      try {
-        const token = localStorage.getItem('auth_token');
-        const response = await fetch('/api/comments', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json'
-          }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setComments(data.length > 0 ? data : initialComments); // fallback to mock if empty for demo
+  const loadDashboardData = async () => {
+    const token = localStorage.getItem('auth_token');
+    if (!token) return;
+
+    try {
+      // 1. Fetch Comments
+      const commentsRes = await fetch('/api/comments', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
         }
-      } catch (error) {
-        console.error("Failed to fetch comments:", error);
-        setComments(initialComments); // fallback
+      });
+      if (commentsRes.ok) {
+        const commentsData = await commentsRes.json();
+        setComments(commentsData.length > 0 ? commentsData : initialComments);
       }
-    };
-    fetchComments();
+
+      // 2. Fetch Stats
+      const statsRes = await fetch('/api/dashboard/stats', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+      if (statsRes.ok) {
+        const statsData = await statsRes.json();
+        setApiStats(statsData);
+      }
+    } catch (error) {
+      console.error("Failed to fetch dashboard data:", error);
+      setComments(initialComments);
+    }
+  };
+
+  useEffect(() => {
+    loadDashboardData();
   }, []);
 
-  // Calculate Metrics & Stress Load Index in real-time
+  // Calculate Metrics & Stress Load Index in real-time or use API Stats
   const stats = useMemo(() => {
+    if (apiStats && apiStats.total > 0) {
+      return apiStats;
+    }
+
     const total = comments.length;
     if (total === 0) {
       return {
@@ -68,7 +89,6 @@ export default function Dashboard({ user, onLogout }) {
     const totalSeverity = toxicComments.reduce((acc, curr) => acc + (curr.severity || 1), 0);
     const avgSeverity = toxicCount > 0 ? totalSeverity / toxicCount : 1;
 
-    // Formula from SABAR Document: (toxic_count * avg_severity) / total_comments * 100
     const rawStress = ((toxicCount * avgSeverity) / total) * 10;
     const stressLevel = Math.min(100, Math.max(0, rawStress * 1.5));
 
@@ -83,10 +103,11 @@ export default function Dashboard({ user, onLogout }) {
       avgSeverity,
       stressLevel,
     };
-  }, [comments]);
+  }, [comments, apiStats]);
 
   const handleAddComment = (newComment) => {
     setComments(prev => [newComment, ...prev]);
+    loadDashboardData();
   };
 
   const handleToggleHide = async (id) => {
@@ -108,7 +129,6 @@ export default function Dashboard({ user, onLogout }) {
     // Actual API Call
     try {
       const token = localStorage.getItem('auth_token');
-      // If it's a mock comment (id contains 'mock' or 'batch'), we can just return since it won't exist in DB
       if (typeof id === 'string' && (id.includes('mock') || id.includes('batch'))) return;
       
       await fetch(`/api/comments/${id}/toggle-hide`, {
@@ -118,9 +138,9 @@ export default function Dashboard({ user, onLogout }) {
           'Accept': 'application/json'
         }
       });
+      loadDashboardData();
     } catch (error) {
       console.error("Failed to toggle hide on server:", error);
-      // Ideally revert the optimistic update here if needed
     }
   };
 
