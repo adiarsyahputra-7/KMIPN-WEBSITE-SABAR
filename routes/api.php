@@ -29,8 +29,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
     
     Route::get('/comments', [CommentController::class, 'index']);
+    Route::post('/comments', [CommentController::class, 'store']);
     Route::patch('/comments/{id}/toggle-hide', [CommentController::class, 'toggleHide']);
+    Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
     
     Route::get('/social-accounts', [SocialAccountController::class, 'index']);
     Route::post('/social-accounts', [SocialAccountController::class, 'store']);
+    Route::delete('/social-accounts/{id}', [SocialAccountController::class, 'destroy']);
 });

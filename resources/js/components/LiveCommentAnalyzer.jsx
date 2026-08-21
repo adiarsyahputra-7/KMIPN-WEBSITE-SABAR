@@ -73,23 +73,54 @@ export default function LiveCommentAnalyzer({ onAddComment }) {
     }, 250);
   };
 
-  const handleApplyToFeed = () => {
+  const handleApplyToFeed = async () => {
     if (!inputText.trim() || !analysisResult) return;
 
-    const newComment = {
-      id: `cmt-${Date.now()}`,
-      author: "@user_uji_demo",
-      avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80",
-      platform: "Instagram",
-      postTitle: "Simulasi Uji Moderasi",
-      text: inputText,
-      ...analysisResult,
-      timestamp: "Baru saja",
-    };
+    const token = localStorage.getItem('auth_token');
 
-    onAddComment(newComment);
-    setInputText("");
-    setAnalysisResult(null);
+    try {
+      const response = await fetch('/api/comments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          author: "@user_uji_demo",
+          text: inputText,
+          sentiment: analysisResult.sentiment,
+          toxicity_score: analysisResult.toxicity_score,
+          severity: analysisResult.severity,
+          is_sarcasm: analysisResult.is_sarcasm,
+          action: analysisResult.action,
+          is_hidden: analysisResult.is_hidden,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        onAddComment(data.comment || data);
+      } else {
+        // Fallback to local optimistic add
+        const newComment = {
+          id: `cmt-${Date.now()}`,
+          author: "@user_uji_demo",
+          avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80",
+          platform: "Instagram",
+          postTitle: "Simulasi Uji Moderasi",
+          text: inputText,
+          ...analysisResult,
+          timestamp: "Baru saja",
+        };
+        onAddComment(newComment);
+      }
+    } catch (err) {
+      console.error("Failed to save comment to database:", err);
+    } finally {
+      setInputText("");
+      setAnalysisResult(null);
+    }
   };
 
   return (

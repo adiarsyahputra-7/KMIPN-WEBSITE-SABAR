@@ -8,29 +8,73 @@ use App\Models\Comment;
 
 class DashboardController extends Controller
 {
-    public function stats()
+    public function stats(Request $request)
     {
         $user = auth()->user();
-        $comments = $user->comments;
+        
+        // Optionally filter stats by social_account_id if passed in request
+        $query = $user->comments();
+        if ($request->has('social_account_id')) {
+            $query->where('social_account_id', $request->social_account_id);
+        }
+        
+        $comments = $query->with('socialAccount')->get();
 
-        $totalComments = $comments->count();
-        $positiveComments = $comments->where('sentiment', 'POSITIF')->count();
-        $negativeComments = $comments->where('sentiment', 'NEGATIF')->count();
+        $total = $comments->count();
+
+        if ($total === 0) {
+            return response()->json([
+                'total' => 0,
+                'positiveCount' => 0,
+                'positivePercent' => 0,
+                'negativeCount' => 0,
+                'negativePercent' => 0,
+                'toxicCount' => 0,
+                'toxicPercent' => 0,
+                'avgSeverity' => 0,
+                'stressLevel' => 0,
+                'platforms' => [
+                    'instagram' => 0,
+                    'tiktok' => 0,
+                    'youtube' => 0,
+                ],
+                'recentComments' => []
+            ]);
+        }
+
+        $positiveCount = $comments->where('sentiment', 'POSITIF')->count();
+        $negativeCount = $comments->where('sentiment', 'NEGATIF')->count();
         $toxicComments = $comments->filter(fn($c) => $c->is_hidden || $c->toxicity_score >= 0.5);
         $toxicCount = $toxicComments->count();
 
-        $avgSeverity = $toxicCount > 0 ? $toxicComments->avg('severity') : 1;
+        $totalSeverity = $toxicComments->sum('severity');
+        $avgSeverity = $toxicCount > 0 ? round($totalSeverity / $toxicCount, 1) : 1.0;
 
-        // Formula SABAR: ((toxicCount * avgSeverity) / total) * 10
-        $rawStress = $totalComments > 0 ? (($toxicCount * $avgSeverity) / $totalComments) * 10 : 0;
+        // SABAR Stress Load Index Formula:
+        // rawStress = ((toxicCount * avgSeverity) / total) * 10
+        // stressLevel = min(100, max(0, round(rawStress * 1.5)))
+        $rawStress = (($toxicCount * $avgSeverity) / $total) * 10;
         $stressLevel = min(100, max(0, round($rawStress * 1.5)));
 
+        // Platform breakdown
+        $platforms = [
+            'instagram' => $comments->filter(fn($c) => strtolower($c->socialAccount->platform ?? '') === 'instagram')->count(),
+            'tiktok' => $comments->filter(fn($c) => strtolower($c->socialAccount->platform ?? '') === 'tiktok')->count(),
+            'youtube' => $comments->filter(fn($c) => strtolower($c->socialAccount->platform ?? '') === 'youtube')->count(),
+        ];
+
         return response()->json([
-            'total_comments' => $totalComments,
-            'positive_comments' => $positiveComments,
-            'negative_comments' => $negativeComments,
-            'stress_level' => $stressLevel,
-            'recent_comments' => $comments->take(5)
+            'total' => $total,
+            'positiveCount' => $positiveCount,
+            'positivePercent' => round(($positiveCount / $total) * 100),
+            'negativeCount' => $negativeCount,
+            'negativePercent' => round(($negativeCount / $total) * 100),
+            'toxicCount' => $toxicCount,
+            'toxicPercent' => round(($toxicCount / $total) * 100),
+            'avgSeverity' => $avgSeverity,
+            'stressLevel' => $stressLevel,
+            'platforms' => $platforms,
+            'recentComments' => $comments->sortByDesc('timestamp')->take(5)->values()
         ]);
     }
 }
