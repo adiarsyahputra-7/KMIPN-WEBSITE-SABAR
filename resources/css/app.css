@@ -2,23 +2,23 @@
 
 @layer base {
   body {
-    @apply bg-[#090D16] text-slate-100 antialiased font-sans;
+    @apply bg-[#F8FAFC] text-slate-800 antialiased font-sans;
     min-height: 100vh;
   }
 }
 
-/* Custom calming scrollbar */
+/* Crisp & minimal scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: #0B1120;
+  background: #F1F5F9;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1E293B;
+  background: #CBD5E1;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #94A3B8;
 }

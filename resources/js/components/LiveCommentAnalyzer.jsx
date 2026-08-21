@@ -2,13 +2,10 @@ import React, { useState } from 'react';
 import { 
   Sparkles, 
   Send, 
-  CheckCircle2, 
-  ShieldAlert, 
-  AlertCircle,
-  HelpCircle,
+  Eye, 
+  EyeOff, 
   CornerDownRight,
-  EyeOff,
-  Eye
+  HelpCircle
 } from 'lucide-react';
 import { samplePresetComments } from '../data/mockData';
 
@@ -17,7 +14,6 @@ export default function LiveCommentAnalyzer({ onAddComment }) {
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState(null);
 
-  // Local Context-Aware NLP Engine Simulation (will hook up to backend API in Phase 4)
   const analyzeTextLocal = (text) => {
     const lower = text.toLowerCase();
 
@@ -74,7 +70,7 @@ export default function LiveCommentAnalyzer({ onAddComment }) {
       const result = analyzeTextLocal(inputText);
       setAnalysisResult(result);
       setAnalyzing(false);
-    }, 350);
+    }, 250);
   };
 
   const handleApplyToFeed = () => {
@@ -82,10 +78,10 @@ export default function LiveCommentAnalyzer({ onAddComment }) {
 
     const newComment = {
       id: `cmt-${Date.now()}`,
-      author: "@user_live_demo",
+      author: "@user_uji_demo",
       avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80",
       platform: "Instagram",
-      postTitle: "Simulasi Uji Moderasi Live",
+      postTitle: "Simulasi Uji Moderasi",
       text: inputText,
       ...analysisResult,
       timestamp: "Baru saja",
@@ -97,24 +93,26 @@ export default function LiveCommentAnalyzer({ onAddComment }) {
   };
 
   return (
-    <div className="p-6 rounded-2xl bg-[#111A2E] border border-slate-800 shadow-xl space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-teal-500/10 border border-teal-500/20 text-teal-400">
-            <Sparkles className="w-4 h-4" />
-          </div>
-          <h3 className="text-sm font-semibold text-white tracking-wide">
-            Live Context-Aware NLP Tester
+    <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4">
+      
+      {/* Header */}
+      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div>
+          <h3 className="text-sm font-bold text-slate-900 font-['Plus_Jakarta_Sans']">
+            Uji Coba Deteksi NLP Kontekstual
           </h3>
+          <p className="text-[11px] text-slate-500">
+            Analisis sentimen, sarkasme lokal, dan skor toksisitas secara seketika
+          </p>
         </div>
-        <span className="text-[11px] text-slate-400">
-          Uji Deteksi Sarkasme & Makian Lokal
+        <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+          Model: IndoBERT Multi-Context
         </span>
       </div>
 
-      {/* Preset Buttons */}
-      <div className="flex flex-wrap gap-2">
-        <span className="text-xs text-slate-400 self-center mr-1">Contoh Cepat:</span>
+      {/* Preset Pills */}
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="text-[11px] font-medium text-slate-400">Sampel Teks:</span>
         {samplePresetComments.map((preset, i) => (
           <button
             key={i}
@@ -122,7 +120,7 @@ export default function LiveCommentAnalyzer({ onAddComment }) {
               setInputText(preset.text);
               setAnalysisResult(null);
             }}
-            className="px-2.5 py-1 text-xs rounded-lg bg-slate-900/80 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-600 transition-all text-left"
+            className="px-2.5 py-1 text-[11px] font-medium rounded-lg bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all"
           >
             {preset.label}
           </button>
@@ -139,50 +137,50 @@ export default function LiveCommentAnalyzer({ onAddComment }) {
               if (analysisResult) setAnalysisResult(null);
             }}
             rows={2}
-            placeholder="Ketik komentar dalam bahasa Indonesia (baku, slang, sarkasme, atau kritik wajar)..."
-            className="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-800 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all resize-none"
+            placeholder="Masukkan contoh komentar bahasa Indonesia (baku, gaul/slang, sindiran bermakna ganda)..."
+            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 transition-all resize-none"
           />
         </div>
 
         <div className="flex items-center justify-between">
-          <p className="text-[11px] text-slate-500">
-            *Mendeteksi ambiguitas, singkatan slang, dan sindiran bermakna ganda.
+          <p className="text-[11px] text-slate-400">
+            *Mendeteksi ambiguitas dan pola kalimat sarkasme Indonesia.
           </p>
           <button
             type="submit"
             disabled={!inputText.trim() || analyzing}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 text-slate-950 text-xs font-bold hover:brightness-110 disabled:opacity-50 transition-all flex items-center gap-1.5 shadow-lg shadow-teal-500/20"
+            className="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 disabled:opacity-40 transition-all flex items-center gap-1.5 shadow-sm"
           >
             {analyzing ? (
-              <span className="animate-spin w-3.5 h-3.5 border-2 border-slate-950 border-t-transparent rounded-full" />
+              <span className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full" />
             ) : (
               <Send className="w-3.5 h-3.5" />
             )}
-            Analisis Teks AI
+            Analisis Teks
           </button>
         </div>
       </form>
 
-      {/* Analysis Result Box */}
+      {/* Result Box */}
       {analysisResult && (
-        <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-3 animate-fadeIn">
+        <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3 animate-fadeIn">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-300">Hasil Analisis NLP:</span>
+            <span className="text-xs font-bold text-slate-700">Hasil Analisis Model:</span>
             <div className="flex items-center gap-2">
-              <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+              <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
                 analysisResult.sentiment === 'POSITIF'
-                  ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30'
+                  ? 'bg-emerald-100 text-emerald-800'
                   : analysisResult.sentiment === 'NEGATIF'
-                  ? 'bg-rose-500/10 text-rose-300 border border-rose-500/30'
-                  : 'bg-slate-700/50 text-slate-300 border border-slate-600'
+                  ? 'bg-rose-100 text-rose-800'
+                  : 'bg-slate-200 text-slate-700'
               }`}>
                 {analysisResult.sentiment} {analysisResult.is_sarcasm && "• Sarkasme"}
               </span>
 
-              <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold flex items-center gap-1 ${
+              <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold flex items-center gap-1 ${
                 analysisResult.action === 'HIDE'
-                  ? 'bg-rose-500 text-white'
-                  : 'bg-emerald-500/20 text-emerald-300'
+                  ? 'bg-rose-600 text-white'
+                  : 'bg-emerald-600 text-white'
               }`}>
                 {analysisResult.action === 'HIDE' ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
                 {analysisResult.action === 'HIDE' ? 'AUTO-HIDE' : 'ALLOWED'}
@@ -190,38 +188,33 @@ export default function LiveCommentAnalyzer({ onAddComment }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-center">
-            <div className="p-2 rounded-lg bg-slate-950/60 border border-slate-800">
-              <p className="text-[10px] text-slate-400">Toxicity Score</p>
-              <p className="text-sm font-bold text-white">{(analysisResult.toxicity_score * 100).toFixed(0)}%</p>
+          <div className="grid grid-cols-3 gap-2 text-center text-xs">
+            <div className="p-2 bg-white rounded-lg border border-slate-200">
+              <p className="text-[10px] text-slate-400 font-medium">Toxicity Score</p>
+              <p className="font-bold text-slate-800 mt-0.5">{(analysisResult.toxicity_score * 100).toFixed(0)}%</p>
             </div>
-            <div className="p-2 rounded-lg bg-slate-950/60 border border-slate-800">
-              <p className="text-[10px] text-slate-400">Severity Index</p>
-              <p className="text-sm font-bold text-amber-400">{analysisResult.severity} / 10</p>
+            <div className="p-2 bg-white rounded-lg border border-slate-200">
+              <p className="text-[10px] text-slate-400 font-medium">Severity Scale</p>
+              <p className="font-bold text-amber-600 mt-0.5">{analysisResult.severity} / 10</p>
             </div>
-            <div className="p-2 rounded-lg bg-slate-950/60 border border-slate-800">
-              <p className="text-[10px] text-slate-400">Sarkasme Lokal</p>
-              <p className="text-sm font-bold text-teal-400">{analysisResult.is_sarcasm ? "Terdeteksi ✓" : "Tidak"}</p>
-            </div>
-            <div className="p-2 rounded-lg bg-slate-950/60 border border-slate-800">
-              <p className="text-[10px] text-slate-400">Rekomendasi Aksi</p>
-              <p className={`text-sm font-bold ${analysisResult.action === 'HIDE' ? 'text-rose-400' : 'text-emerald-400'}`}>
-                {analysisResult.action}
-              </p>
+            <div className="p-2 bg-white rounded-lg border border-slate-200">
+              <p className="text-[10px] text-slate-400 font-medium">Pola Sarkasme</p>
+              <p className="font-bold text-slate-800 mt-0.5">{analysisResult.is_sarcasm ? "Terdeteksi ✓" : "Tidak"}</p>
             </div>
           </div>
 
-          <div className="pt-2 border-t border-slate-800 flex justify-end">
+          <div className="pt-2 border-t border-slate-200 flex justify-end">
             <button
               onClick={handleApplyToFeed}
-              className="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 hover:text-white transition-all flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-xs font-semibold text-slate-700 border border-slate-300 transition-all flex items-center gap-1.5"
             >
-              <CornerDownRight className="w-3.5 h-3.5 text-teal-400" />
-              Terapkan & Masukkan ke Feed Moderasi
+              <CornerDownRight className="w-3.5 h-3.5 text-emerald-600" />
+              Masukkan ke Log Komentar Live
             </button>
           </div>
         </div>
       )}
+
     </div>
   );
 }

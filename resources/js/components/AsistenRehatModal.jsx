@@ -4,17 +4,17 @@ import {
   Coffee, 
   Wind, 
   ShieldCheck, 
-  PhoneCall, 
   Play, 
   Pause, 
   RotateCcw,
-  CheckCircle2
+  Heart,
+  PhoneCall
 } from 'lucide-react';
 
 export default function AsistenRehatModal({ isOpen, onClose, stressLevel }) {
-  const [breathState, setBreathState] = useState("Tarik Napas"); // "Tarik Napas", "Tahan", "Hembuskan"
+  const [breathState, setBreathState] = useState("Tarik Napas");
   const [timerRunning, setTimerRunning] = useState(false);
-  const [countdown, setCountdown] = useState(120); // 2 minutes
+  const [countdown, setCountdown] = useState(120);
 
   useEffect(() => {
     let interval = null;
@@ -28,7 +28,6 @@ export default function AsistenRehatModal({ isOpen, onClose, stressLevel }) {
     return () => clearInterval(interval);
   }, [timerRunning, countdown]);
 
-  // Breathing animation cycle
   useEffect(() => {
     if (!timerRunning) return;
     const cycleInterval = setInterval(() => {
@@ -47,74 +46,73 @@ export default function AsistenRehatModal({ isOpen, onClose, stressLevel }) {
   const seconds = countdown % 60;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn">
-      <div className="w-full max-w-lg rounded-3xl bg-[#0E1626] border border-teal-500/30 shadow-2xl overflow-hidden relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn">
+      <div className="w-full max-w-md rounded-2xl bg-white border border-slate-200 shadow-2xl overflow-hidden">
         
-        {/* Modal Top Bar */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/50">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400">
-              <Coffee className="w-5 h-5" />
+            <div className="p-2 rounded-xl bg-emerald-50 border border-emerald-200/80 text-emerald-700">
+              <Coffee className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white font-['Plus_Jakarta_Sans']">
-                Asisten Rehat Digital SABAR
+              <h3 className="text-sm font-bold text-slate-900 font-['Plus_Jakarta_Sans']">
+                Asisten Rehat Digital
               </h3>
-              <p className="text-[11px] text-teal-300">
-                Sistem Proteksi Kesejahteraan Psikologis Admin
+              <p className="text-[11px] text-slate-500">
+                Sistem Proteksi Kesejahteraan Psikologis
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-all"
+            className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Modal Body */}
-        <div className="p-6 space-y-6">
-          {/* Stress Warning Alert */}
-          <div className="p-4 rounded-2xl bg-gradient-to-r from-teal-950/40 via-slate-900 to-indigo-950/40 border border-teal-500/20 text-center space-y-1">
-            <p className="text-xs font-semibold text-teal-300">
-              Indikator Beban Kerja Terdeteksi: <span className="text-white font-bold">{Math.round(stressLevel)}%</span>
+        {/* Body */}
+        <div className="p-6 space-y-5">
+          {/* Notification Alert */}
+          <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200/80 text-emerald-900 space-y-1 text-center">
+            <p className="text-xs font-bold">
+              Indikator Beban Kerja Terkini: {Math.round(stressLevel)}%
             </p>
-            <p className="text-xs text-slate-400">
-              Kesehatan mental Anda adalah prioritas. Luangkan waktu sejenak untuk menenangkan sistem saraf sebelum kembali memoderasi.
+            <p className="text-[11px] text-emerald-700 leading-relaxed">
+              Luangkan waktu sejenak untuk menstabilkan fokus mental sebelum melanjutkan pekerjaan moderasi.
             </p>
           </div>
 
-          {/* Interactive Guided Breathing */}
-          <div className="flex flex-col items-center justify-center p-6 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4">
+          {/* Interactive Breathing */}
+          <div className="flex flex-col items-center justify-center p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
             <div className="relative flex items-center justify-center">
-              {/* Pulsing breathing bubble */}
               <div 
-                className={`w-32 h-32 rounded-full flex items-center justify-center text-center transition-all duration-1000 ${
+                className={`w-28 h-28 rounded-full flex items-center justify-center text-center transition-all duration-1000 ${
                   timerRunning 
                     ? breathState === "Tarik Napas" 
-                      ? 'scale-125 bg-teal-500/20 border-2 border-teal-400 shadow-xl shadow-teal-500/30'
+                      ? 'scale-110 bg-emerald-100 border-2 border-emerald-400 shadow-lg'
                       : breathState === "Tahan Napas"
-                      ? 'scale-125 bg-cyan-500/20 border-2 border-cyan-400'
-                      : 'scale-95 bg-slate-800 border-2 border-slate-600'
-                    : 'bg-slate-800 border border-slate-700'
+                      ? 'scale-110 bg-teal-100 border-2 border-teal-400'
+                      : 'scale-90 bg-slate-200 border-2 border-slate-300'
+                    : 'bg-white border-2 border-slate-200'
                 }`}
               >
                 <div className="space-y-1">
-                  <Wind className="w-6 h-6 text-teal-300 mx-auto animate-pulse" />
-                  <p className="text-xs font-bold text-white tracking-wide">
-                    {timerRunning ? breathState : "Mulai Sesi"}
+                  <Wind className="w-5 h-5 text-emerald-600 mx-auto animate-pulse" />
+                  <p className="text-[11px] font-bold text-slate-800">
+                    {timerRunning ? breathState : "Siap Mulai"}
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Timer Counter */}
+            {/* Timer */}
             <div className="text-center">
-              <span className="text-xl font-extrabold text-white font-mono">
+              <span className="text-xl font-bold text-slate-900 font-mono">
                 {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
               </span>
-              <p className="text-[10px] text-slate-500">
+              <p className="text-[10px] text-slate-400">
                 Sesi Relaksasi 2 Menit
               </p>
             </div>
@@ -123,10 +121,10 @@ export default function AsistenRehatModal({ isOpen, onClose, stressLevel }) {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setTimerRunning(!timerRunning)}
-                className="px-4 py-1.5 rounded-xl bg-teal-500 text-slate-950 text-xs font-bold hover:bg-teal-400 transition-all flex items-center gap-1.5 shadow-lg shadow-teal-500/20"
+                className="px-4 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 transition-all flex items-center gap-1.5 shadow-sm"
               >
                 {timerRunning ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-                {timerRunning ? "Jeda" : "Mulai Napas Terpandu"}
+                {timerRunning ? "Jeda" : "Mulai Pernapasan"}
               </button>
               <button
                 onClick={() => {
@@ -134,8 +132,8 @@ export default function AsistenRehatModal({ isOpen, onClose, stressLevel }) {
                   setCountdown(120);
                   setBreathState("Tarik Napas");
                 }}
-                className="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-all"
-                title="Reset Timer"
+                className="p-1.5 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-slate-800 transition-all"
+                title="Reset"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
               </button>
@@ -143,27 +141,24 @@ export default function AsistenRehatModal({ isOpen, onClose, stressLevel }) {
           </div>
 
           {/* Autonomous Shield Notice */}
-          <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 flex items-start gap-3">
-            <ShieldCheck className="w-5 h-5 text-teal-400 shrink-0 mt-0.5" />
-            <div className="text-xs">
-              <p className="font-semibold text-slate-200">Perisai AI Otonom Aktif</p>
-              <p className="text-slate-400 text-[11px] leading-relaxed">
-                Selama Anda rehat, AI SABAR akan tetap mencegat komentar toksik secara otomatis di latar belakang.
-              </p>
-            </div>
+          <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-start gap-2.5">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+            <p className="text-[11px] text-slate-600 leading-relaxed">
+              <strong>Perisai Otonom Aktif:</strong> Sistem SABAR terus mencegat ujaran negatif secara otomatis saat Anda beristirahat.
+            </p>
           </div>
         </div>
 
-        {/* Modal Footer */}
-        <div className="px-6 py-4 bg-slate-900/50 border-t border-slate-800 flex items-center justify-between">
-          <span className="text-[11px] text-slate-500">
-            Kemitraan Tele-Psychology B2B
+        {/* Footer */}
+        <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs">
+          <span className="text-[11px] text-slate-400">
+            Rujukan Tele-Psychology
           </span>
           <button
             onClick={onClose}
-            className="px-4 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-all"
+            className="px-3.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-medium text-xs transition-all"
           >
-            Tutup & Lanjutkan Kerja
+            Tutup
           </button>
         </div>
 

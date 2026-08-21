@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import StatsCards from './StatsCards';
 import StressGauge from './StressGauge';
@@ -7,10 +8,11 @@ import CommentTable from './CommentTable';
 import AsistenRehatModal from './AsistenRehatModal';
 import SocialAccountModal from './SocialAccountModal';
 import { initialComments } from '../data/mockData';
-import { Sparkles, Shield, Heart, TrendingUp, Info } from 'lucide-react';
+import { ShieldCheck, Sparkles, Heart, Activity } from 'lucide-react';
 
 export default function Dashboard() {
   const [comments, setComments] = useState(initialComments);
+  const [activeTab, setActiveTab] = useState("dashboard");
   const [isRehatModalOpen, setIsRehatModalOpen] = useState(false);
   const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
   const [connectedAccount, setConnectedAccount] = useState({
@@ -45,9 +47,8 @@ export default function Dashboard() {
     const avgSeverity = toxicCount > 0 ? totalSeverity / toxicCount : 1;
 
     // Formula from SABAR Document: (toxic_count * avg_severity) / total_comments * 100
-    // Capped at 100%
     const rawStress = ((toxicCount * avgSeverity) / total) * 10;
-    const stressLevel = Math.min(100, Math.max(0, rawStress * 1.5)); // Normalized scale for sensitivity
+    const stressLevel = Math.min(100, Math.max(0, rawStress * 1.5));
 
     return {
       total,
@@ -62,16 +63,10 @@ export default function Dashboard() {
     };
   }, [comments]);
 
-  // Handler: Add comment from Live Analyzer
   const handleAddComment = (newComment) => {
     setComments(prev => [newComment, ...prev]);
-    // If high stress triggered automatically, suggest break
-    if (newComment.severity >= 8) {
-      // Optional subtle prompt
-    }
   };
 
-  // Handler: Toggle hide status
   const handleToggleHide = (id) => {
     setComments(prev =>
       prev.map(c => {
@@ -88,21 +83,19 @@ export default function Dashboard() {
     );
   };
 
-  // Handler: Reset mock data
   const handleResetMock = () => {
     setComments(initialComments);
   };
 
-  // Handler: Simulate pulling fresh comments from Instagram
   const handleSyncLiveFeed = () => {
     const liveBatch = [
       {
         id: `batch-${Date.now()}-1`,
-        author: "@netizen_kepo",
+        author: "@netizen_kreatif",
         avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
         platform: "Instagram",
         postTitle: "Posting Terbaru",
-        text: "Keren banget terobosan terbarunya, salut sama tim pengembang!",
+        text: "Keren banget terobosan barunya, sangat membantu kesehatan mental!",
         sentiment: "POSITIF",
         toxicity_score: 0.02,
         severity: 1,
@@ -132,83 +125,104 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#090D16] text-slate-100 flex flex-col selection:bg-teal-500/20 selection:text-teal-300">
+    <div className="min-h-screen bg-[#F8FAFC] flex text-slate-800 font-sans">
       
-      {/* Top Navigation */}
-      <Navbar
+      {/* 1. Authentic Modern SaaS Sidebar */}
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
         onOpenRehat={() => setIsRehatModalOpen(true)}
         onOpenConnect={() => setIsSocialModalOpen(true)}
         connectedAccount={connectedAccount}
         stressLevel={stats.stressLevel}
       />
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      {/* 2. Main Workspace Layout */}
+      <div className="flex-1 flex flex-col min-w-0">
         
-        {/* Banner Welcome & Value Prop */}
-        <div className="p-6 rounded-3xl bg-gradient-to-r from-slate-900 via-[#111A2E] to-slate-900 border border-slate-800 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-500/10 text-teal-300 border border-teal-500/30">
-                Dashboard Moderasi & Proteksi Mental
-              </span>
-              <span className="text-xs text-slate-400">
-                Akun Terhubung: <strong className="text-white">{connectedAccount.handle}</strong>
-              </span>
-            </div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white font-['Plus_Jakarta_Sans']">
-              Proteksi Reputasi & Kesehatan Jiwa Pekerja Digital
-            </h1>
-            <p className="text-xs text-slate-400 max-w-2xl leading-relaxed">
-              SABAR secara otomatis mencegat, menyaring, dan menyembunyikan komentar sarkasme dan ujaran kebencian secara real-time sebelum sempat dibaca oleh pengelola akun.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2 self-stretch sm:self-auto">
-            <button
-              onClick={() => setIsSocialModalOpen(true)}
-              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition-all flex items-center justify-center gap-1.5"
-            >
-              Ganti Akun Target
-            </button>
-            <button
-              onClick={() => setIsRehatModalOpen(true)}
-              className="px-4 py-2 rounded-xl bg-teal-500 text-slate-950 text-xs font-bold hover:bg-teal-400 transition-all shadow-lg shadow-teal-500/20 flex items-center justify-center gap-1.5"
-            >
-              <Heart className="w-3.5 h-3.5" />
-              Asisten Rehat
-            </button>
-          </div>
-        </div>
-
-        {/* 4 Stats Cards */}
-        <StatsCards stats={stats} />
-
-        {/* 2 Column Section: Stress Gauge & Live Comment Tester */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-5">
-            <StressGauge
-              stressLevel={stats.stressLevel}
-              avgSeverity={stats.avgSeverity}
-              toxicCount={stats.toxicCount}
-              totalComments={stats.total}
-              onTriggerRehat={() => setIsRehatModalOpen(true)}
-            />
-          </div>
-
-          <div className="lg:col-span-7">
-            <LiveCommentAnalyzer onAddComment={handleAddComment} />
-          </div>
-        </div>
-
-        {/* Moderation Comment Table */}
-        <CommentTable
-          comments={comments}
-          onToggleHide={handleToggleHide}
-          onResetMock={handleResetMock}
+        {/* Top Navigation Bar */}
+        <Navbar
+          activeTab={activeTab}
+          onOpenRehat={() => setIsRehatModalOpen(true)}
+          onOpenConnect={() => setIsSocialModalOpen(true)}
+          connectedAccount={connectedAccount}
+          stressLevel={stats.stressLevel}
         />
 
-      </main>
+        {/* Page Content Body */}
+        <main className="p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">
+          
+          {/* Welcome Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60">
+                  Dual-Focus Moderation
+                </span>
+                <span className="text-xs text-slate-400">
+                  Target Akun: <strong className="text-slate-800">{connectedAccount.handle}</strong>
+                </span>
+              </div>
+              <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 font-['Plus_Jakarta_Sans'] mt-1">
+                Ikhtisar Beban Kerja & Moderasi Otomatis
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Sistem aktif menyaring ujaran kebencian & sarkasme secara real-time guna melindungi kenyamanan mental pengelola akun.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsSocialModalOpen(true)}
+                className="px-3.5 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 border border-slate-200 transition-all"
+              >
+                Ganti Akun Target
+              </button>
+              <button
+                onClick={() => setIsRehatModalOpen(true)}
+                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-all shadow-sm flex items-center gap-1.5"
+              >
+                <Heart className="w-3.5 h-3.5" />
+                Asisten Rehat
+              </button>
+            </div>
+          </div>
+
+          {/* 4 Summary Stats Cards */}
+          <StatsCards stats={stats} />
+
+          {/* 2-Column: Stress Gauge & Live Context-Aware Tester */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="lg:col-span-5">
+              <StressGauge
+                stressLevel={stats.stressLevel}
+                avgSeverity={stats.avgSeverity}
+                toxicCount={stats.toxicCount}
+                totalComments={stats.total}
+                onTriggerRehat={() => setIsRehatModalOpen(true)}
+              />
+            </div>
+
+            <div className="lg:col-span-7">
+              <LiveCommentAnalyzer onAddComment={handleAddComment} />
+            </div>
+          </div>
+
+          {/* Live Comment Moderation Table */}
+          <CommentTable
+            comments={comments}
+            onToggleHide={handleToggleHide}
+            onResetMock={handleResetMock}
+          />
+
+        </main>
+
+        {/* Footer */}
+        <footer className="mt-auto py-6 border-t border-slate-200/80 bg-white text-center text-xs text-slate-400">
+          <p>© 2026 SABAR — Sistem Moderation-as-a-Service Berbasis Context-Aware NLP. Lomba KMIPN 2026.</p>
+        </footer>
+
+      </div>
 
       {/* Modals */}
       <AsistenRehatModal
@@ -224,11 +238,6 @@ export default function Dashboard() {
         onSelectAccount={(acc) => setConnectedAccount(acc)}
         onSyncLiveFeed={handleSyncLiveFeed}
       />
-
-      {/* Footer */}
-      <footer className="mt-12 py-6 border-t border-slate-800/60 text-center text-xs text-slate-500">
-        <p>© 2026 SABAR — Sistem Moderation-as-a-Service Berbasis Context-Aware NLP. Lomba KMIPN 2026.</p>
-      </footer>
 
     </div>
   );
