@@ -13,7 +13,7 @@ import {
   UserCheck
 } from 'lucide-react';
 
-export default function Sidebar({ activeTab, setActiveTab, onOpenRehat, onOpenConnect, connectedAccount, stressLevel }) {
+export default function Sidebar({ activeTab, setActiveTab, onOpenRehat, onOpenConnect, connectedAccount, stressLevel, user, onLogout }) {
   const isHighStress = stressLevel >= 65;
 
   const navigation = [
@@ -31,7 +31,7 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenRehat, onOpenCo
         { 
           id: "rehat", 
           label: "Asisten Rehat", 
-          icon: HeartHandshake, 
+          icon: HeartHandshake,  
           action: onOpenRehat,
           badge: isHighStress ? "Perlu Rehat" : null,
           badgeAlert: isHighStress
@@ -138,18 +138,19 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenRehat, onOpenCo
       <div className="p-4 border-t border-slate-100 flex items-center justify-between bg-white">
         <div className="flex items-center gap-2.5">
           <img
-            src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
-            alt="Kalyca Kyla"
+            src={user?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"}
+            alt={user?.name || "Kalyca Kyla"}
             className="w-8 h-8 rounded-full object-cover border border-slate-200"
           />
           <div className="text-left">
-            <p className="text-xs font-semibold text-slate-800">Kalyca Kyla</p>
-            <p className="text-[10px] text-slate-400">Social Media Lead</p>
+            <p className="text-xs font-semibold text-slate-800">{user?.name || "Kalyca Kyla"}</p>
+            <p className="text-[10px] text-slate-400">{user?.role || "Social Media Lead"}</p>
           </div>
         </div>
         <button 
-          title="Keluar"
-          className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all"
+          onClick={onLogout}
+          title="Keluar (Logout)"
+          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
         >
           <LogOut className="w-4 h-4" />
         </button>

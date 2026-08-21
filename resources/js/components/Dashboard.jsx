@@ -10,7 +10,7 @@ import SocialAccountModal from './SocialAccountModal';
 import { initialComments } from '../data/mockData';
 import { ShieldCheck, Sparkles, Heart, Activity } from 'lucide-react';
 
-export default function Dashboard() {
+export default function Dashboard({ user, onLogout }) {
   const [comments, setComments] = useState(initialComments);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isRehatModalOpen, setIsRehatModalOpen] = useState(false);
@@ -135,6 +135,8 @@ export default function Dashboard() {
         onOpenConnect={() => setIsSocialModalOpen(true)}
         connectedAccount={connectedAccount}
         stressLevel={stats.stressLevel}
+        user={user}
+        onLogout={onLogout}
       />
 
       {/* 2. Main Workspace Layout */}
@@ -157,14 +159,14 @@ export default function Dashboard() {
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60">
-                  Dual-Focus Moderation
+                  {user?.plan || "Agency Pro Tier"}
                 </span>
                 <span className="text-xs text-slate-400">
                   Target Akun: <strong className="text-slate-800">{connectedAccount.handle}</strong>
                 </span>
               </div>
               <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 font-['Plus_Jakarta_Sans'] mt-1">
-                Ikhtisar Beban Kerja & Moderasi Otomatis
+                Selamat Datang, {user?.name || "Kalyca Kyla"}
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
                 Sistem aktif menyaring ujaran kebencian & sarkasme secara real-time guna melindungi kenyamanan mental pengelola akun.
