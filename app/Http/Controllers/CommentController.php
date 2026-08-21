@@ -10,13 +10,7 @@ class CommentController extends Controller
 {
     public function index()
     {
-        // For phase 1, just return all comments from the user's social accounts
-        $user = auth()->user();
-        
-        $comments = Comment::whereHas('socialAccount', function($query) use ($user) {
-            $query->where('user_id', $user->id);
-        })->latest('timestamp')->get();
-
+        $comments = auth()->user()->comments()->latest('timestamp')->get();
         return response()->json($comments);
     }
 

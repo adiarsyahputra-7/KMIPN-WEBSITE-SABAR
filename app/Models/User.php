@@ -33,6 +33,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get all comments for the user's social accounts via HasManyThrough.
+     */
+    public function comments()
+    {
+        return $this->hasManyThrough(Comment::class, SocialAccount::class);
+    }
+
+    /**
      * The attributes that should be hidden for serialization.
      *
      * @var array<int, string>

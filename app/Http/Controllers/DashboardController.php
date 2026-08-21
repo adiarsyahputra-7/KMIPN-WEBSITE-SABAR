@@ -11,17 +11,19 @@ class DashboardController extends Controller
     public function stats()
     {
         $user = auth()->user();
-
-        $comments = Comment::whereHas('socialAccount', function($query) use ($user) {
-            $query->where('user_id', $user->id);
-        })->get();
+        $comments = $user->comments;
 
         $totalComments = $comments->count();
         $positiveComments = $comments->where('sentiment', 'POSITIF')->count();
         $negativeComments = $comments->where('sentiment', 'NEGATIF')->count();
-        
-        // Simple mock stress calculation based on negative comments
-        $stressLevel = $totalComments > 0 ? round(($negativeComments / $totalComments) * 100) : 0;
+        $toxicComments = $comments->filter(fn($c) => $c->is_hidden || $c->toxicity_score >= 0.5);
+        $toxicCount = $toxicComments->count();
+
+        $avgSeverity = $toxicCount > 0 ? $toxicComments->avg('severity') : 1;
+
+        // Formula SABAR: ((toxicCount * avgSeverity) / total) * 10
+        $rawStress = $totalComments > 0 ? (($toxicCount * $avgSeverity) / $totalComments) * 10 : 0;
+        $stressLevel = min(100, max(0, round($rawStress * 1.5)));
 
         return response()->json([
             'total_comments' => $totalComments,

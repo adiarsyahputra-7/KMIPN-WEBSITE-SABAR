@@ -17,6 +17,10 @@ class SocialAccount extends Model
         'followers_count',
     ];
 
+    protected $casts = [
+        'followers_count' => 'integer',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
