@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import StatsCards from './StatsCards';
@@ -11,7 +11,7 @@ import { initialComments } from '../data/mockData';
 import { ShieldCheck, Sparkles, Heart, Activity } from 'lucide-react';
 
 export default function Dashboard({ user, onLogout }) {
-  const [comments, setComments] = useState(initialComments);
+  const [comments, setComments] = useState([]);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isRehatModalOpen, setIsRehatModalOpen] = useState(false);
   const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
@@ -20,6 +20,28 @@ export default function Dashboard({ user, onLogout }) {
     name: "SABAR Official Brand",
     followers: "128.4K",
   });
+
+  useEffect(() => {
+    const fetchComments = async () => {
+      try {
+        const token = localStorage.getItem('auth_token');
+        const response = await fetch('/api/comments', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setComments(data.length > 0 ? data : initialComments); // fallback to mock if empty for demo
+        }
+      } catch (error) {
+        console.error("Failed to fetch comments:", error);
+        setComments(initialComments); // fallback
+      }
+    };
+    fetchComments();
+  }, []);
 
   // Calculate Metrics & Stress Load Index in real-time
   const stats = useMemo(() => {
@@ -67,7 +89,8 @@ export default function Dashboard({ user, onLogout }) {
     setComments(prev => [newComment, ...prev]);
   };
 
-  const handleToggleHide = (id) => {
+  const handleToggleHide = async (id) => {
+    // Optimistic UI update
     setComments(prev =>
       prev.map(c => {
         if (c.id === id) {
@@ -81,6 +104,24 @@ export default function Dashboard({ user, onLogout }) {
         return c;
       })
     );
+
+    // Actual API Call
+    try {
+      const token = localStorage.getItem('auth_token');
+      // If it's a mock comment (id contains 'mock' or 'batch'), we can just return since it won't exist in DB
+      if (typeof id === 'string' && (id.includes('mock') || id.includes('batch'))) return;
+      
+      await fetch(`/api/comments/${id}/toggle-hide`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+    } catch (error) {
+      console.error("Failed to toggle hide on server:", error);
+      // Ideally revert the optimistic update here if needed
+    }
   };
 
   const handleResetMock = () => {

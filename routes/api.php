@@ -14,6 +14,21 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CommentController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\SocialAccountController;
+
+Route::post('/auth/login', [AuthController::class, 'login']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/auth/logout', [AuthController::class, 'logout']);
+    Route::get('/auth/me', [AuthController::class, 'me']);
+
+    Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
+    
+    Route::get('/comments', [CommentController::class, 'index']);
+    Route::patch('/comments/{id}/toggle-hide', [CommentController::class, 'toggleHide']);
+    
+    Route::get('/social-accounts', [SocialAccountController::class, 'index']);
 });

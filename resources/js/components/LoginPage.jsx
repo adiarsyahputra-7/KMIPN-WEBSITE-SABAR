@@ -18,35 +18,84 @@ export default function LoginPage({ onLogin }) {
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e?.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      onLogin({
-        name: isSignUp ? "Pengguna Baru" : "Kalyca Kyla",
-        email: email,
-        role: "Social Media Lead",
-        plan: "Agency Pro Tier",
-        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
+    
+    try {
+      // Import axios locally if not in window.axios (or just use global fetch, but let's use standard fetch to avoid missing import errors if axios is not configured in this file)
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
       });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        // Save token to localStorage
+        localStorage.setItem('auth_token', data.token);
+        
+        onLogin({
+          name: data.user.name,
+          email: data.user.email,
+          role: data.user.role,
+          plan: data.user.plan,
+          avatar: data.user.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
+        });
+      } else {
+        alert(data.message || 'Login failed');
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      alert('An error occurred during login');
+    } finally {
       setLoading(false);
-    }, 350);
+    }
   };
 
-  const handleQuickDemoLogin = (role) => {
+  const handleQuickDemoLogin = async (role) => {
     setLoading(true);
-    setTimeout(() => {
-      onLogin({
-        name: role === 'creator' ? "Adiar Zidan" : "Kalyca Kyla",
-        email: role === 'creator' ? "adiar.creator@sabar.id" : "kalyca.admin@sabar.id",
-        role: role === 'creator' ? "Content Creator" : "Social Media Lead",
-        plan: role === 'creator' ? "Creator Pro Tier" : "Agency Pro Tier",
-        avatar: role === 'creator' 
-          ? "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80"
-          : "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
+    
+    const demoEmail = role === 'creator' ? 'adiar@sabar.com' : 'kalyca@sabar.com';
+    const demoPassword = 'password';
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ email: demoEmail, password: demoPassword }),
       });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        localStorage.setItem('auth_token', data.token);
+        
+        onLogin({
+          name: data.user.name,
+          email: data.user.email,
+          role: data.user.role,
+          plan: data.user.plan,
+          avatar: data.user.avatar || (role === 'creator' 
+            ? "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80"
+            : "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80")
+        });
+      } else {
+        alert(data.message || 'Demo login failed');
+      }
+    } catch (error) {
+      console.error("Demo login error:", error);
+      alert('An error occurred during demo login');
+    } finally {
       setLoading(false);
-    }, 250);
+    }
   };
 
   return (
