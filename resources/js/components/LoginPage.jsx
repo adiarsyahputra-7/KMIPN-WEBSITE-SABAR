@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 
 export default function LoginPage({ onLogin }) {
+  const [name, setName] = useState("Pengguna Baru");
   const [email, setEmail] = useState("kalyca.admin@sabar.id");
   const [password, setPassword] = useState("password123");
   const [showPassword, setShowPassword] = useState(false);
@@ -22,36 +23,37 @@ export default function LoginPage({ onLogin }) {
     e?.preventDefault();
     setLoading(true);
     
+    const endpoint = isSignUp ? '/api/auth/register' : '/api/auth/login';
+    const payload = isSignUp ? { name, email, password, role: 'creator' } : { email, password };
+
     try {
-      // Import axios locally if not in window.axios (or just use global fetch, but let's use standard fetch to avoid missing import errors if axios is not configured in this file)
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(payload),
       });
       
       const data = await response.json();
       
       if (response.ok) {
-        // Save token to localStorage
         localStorage.setItem('auth_token', data.token);
         
         onLogin({
           name: data.user.name,
           email: data.user.email,
-          role: data.user.role,
-          plan: data.user.plan,
+          role: data.user.role || (isSignUp ? "Content Creator" : "Social Media Lead"),
+          plan: data.user.plan || "Creator Pro Tier",
           avatar: data.user.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
         });
       } else {
-        alert(data.message || 'Login failed');
+        alert(data.message || (isSignUp ? 'Pendaftaran gagal' : 'Login gagal'));
       }
     } catch (error) {
-      console.error("Login error:", error);
-      alert('An error occurred during login');
+      console.error("Auth error:", error);
+      alert('Terjadi kesalahan saat memproses permintaan.');
     } finally {
       setLoading(false);
     }
