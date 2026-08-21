@@ -1,66 +1,84 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🛡️ SABAR — Sistem Analisis Bullying dan Asisten Rehat Digital
+> **Platform Moderation-as-a-Service (MaaS) Berbasis Context-Aware NLP untuk Proteksi Kesehatan Mental Pengelola Media Sosial di Indonesia**  
+> *Karya Kompetisi Mahasiswa Informatika Politeknik Nasional (KMIPN) 2026 — Politeknik Negeri Jember*
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+---
 
-## About Laravel
+## 📌 Ringkasan Proyek
+**SABAR** adalah platform *Moderation-as-a-Service (MaaS)* berbasis B2B SaaS yang mengadopsi pendekatan **Fokus Ganda (Dual-Focus Approach)**:
+1. **Proteksi Reputasi Bisnis**: Mencegat, menyaring, dan menyembunyikan komentar negatif, ujaran kebencian, dan sarkasme secara *real-time*.
+2. **Kesehatan Mental Pengelola Akun**: Mengukur beban psikologis kerja (*Stress-Load Index™*) secara otomatis serta menghadirkan fitur intervensi dini **Asisten Rehat Digital** untuk mencegah *burnout* dan kelelahan mental pada praktisi media sosial.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 🚀 Fitur Utama
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Context-Aware NLP Engine**: Deteksi sentimen (*Positif, Negatif, Netral*), skor toksisitas (0.0 – 1.0), skala keparahan (*Severity 1 – 10*), serta pengenalan pola sarkasme lokal & bahasa gaul/slang netizen Indonesia.
+- **Stress-Load Index™ Gauge**: Indikator radial dinamis untuk mengukur beban stres kerja real-time dengan rumus:
+  $$\text{Stress Index (\%)} = \frac{\text{toxic\_count} \times \text{avg\_severity}}{\text{total\_comments}} \times 100$$
+- **Live Comment Moderation Log**: Log moderasi komentar masuk dengan filter kategori (*Semua, Tertahan/Hidden, Positif, Negatif*), status badge otomatis `[HIDDEN]` / `[ALLOWED]`, dan aksi pemulihan manual.
+- **Asisten Rehat Digital**: Intervensi relaksasi otomatis saat beban stres melampaui batas aman (>65%), dilengkapi *2-Minute Guided Breathing Exercise*.
+- **Mock Social Media Sync**: Simulator integrasi Instagram Graph API & TikTok for Developers untuk menguji alur penarikan komentar langsung.
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 🛠️ Tech Stack & Arsitektur
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+- **Frontend**: React 19 + Vite 5 + TailwindCSS v4 + Lucide Icons
+- **Backend**: Laravel 10 (Modern MVC Architecture & API Routes)
+- **AI / NLP**: Context-Aware Natural Language Processing (Hugging Face Transformers / Hybrid Lexicon Engine)
+- **Database**: PostgreSQL / MySQL
+- **Tooling**: Node.js & Composer (Laragon / Local Environment)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-## Laravel Sponsors
+## 💻 Panduan Menjalankan Sistem di Lokal
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 1. Prasyarat
+- PHP 8.1+ & Composer
+- Node.js 18+ & NPM
+- MySQL / PostgreSQL (Laragon direkomendasikan)
 
-### Premium Partners
+### 2. Instalasi Dependensi
+```bash
+# Clone repository
+git clone https://github.com/adiarsyahputra-7/KMIPN-WEBSITE-SABAR.git
+cd Website_SABAR
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+# Install dependensi PHP
+composer install
 
-## Contributing
+# Install dependensi JavaScript/React
+npm install
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 3. Konfigurasi Environment
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-## Code of Conduct
+### 4. Kompilasi Aset Frontend
+```bash
+# Untuk mode development (Hot Reload):
+npm run dev
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+# Untuk mode production:
+npm run build
+```
 
-## Security Vulnerabilities
+### 5. Jalankan Aplikasi
+```bash
+php artisan serve
+```
+Akses aplikasi melalui browser di **`http://localhost:8000`** atau melalui Virtual Host Laragon **`http://website-sabar.test`**.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
-## License
+## 👥 Tim Pengembang (Tim Tini Wini Biti - Politeknik Negeri Jember)
+- **Kalyca Kyla Ashila Mahaj Mariansyah** (Ketua - E31252362)
+- **Adiar Zidan Syahputra** (Anggota - E31252379)
+- **Rangga Bagus Andika** (Anggota - E31252396)
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+---
+*© 2026 SABAR Project. All rights reserved.*
