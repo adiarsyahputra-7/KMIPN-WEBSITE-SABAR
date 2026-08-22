@@ -37,6 +37,7 @@ return [
         'redirect_uri' => env('META_REDIRECT_URI', 'http://localhost:8000/auth/instagram/callback'),
         'graph_version' => 'v19.0',
         'graph_url' => 'https://graph.facebook.com/v19.0',
+        'webhook_verify_token' => env('META_WEBHOOK_VERIFY_TOKEN', 'sabar_webhook_secret_2026'),
     ],
 
 ];

@@ -19,6 +19,16 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InstagramAuthController;
 use App\Http\Controllers\SocialAccountController;
+use App\Http\Controllers\WebhookController;
+
+// ─── Instagram Webhook Routes (PUBLIK — dipanggil oleh server Meta) ──────────
+// Route ini TIDAK menggunakan middleware auth:sanctum karena request datang dari
+// server Meta, bukan dari user yang sudah login. Keamanannya dijaga oleh
+// verifikasi HMAC X-Hub-Signature-256 di dalam WebhookController.
+Route::get('/webhook/instagram', [WebhookController::class, 'verify'])
+    ->name('webhook.instagram.verify');
+Route::post('/webhook/instagram', [WebhookController::class, 'handle'])
+    ->name('webhook.instagram.handle');
 
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/register', [AuthController::class, 'register']);
