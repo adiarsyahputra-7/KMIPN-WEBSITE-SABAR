@@ -1,11 +1,13 @@
 import React from 'react';
-import { 
-  X, 
-  CheckCircle2, 
-  RefreshCw, 
-  ShieldCheck, 
-  ExternalLink 
+import {
+  X,
+  CheckCircle2,
+  RefreshCw,
+  ShieldCheck,
+  Plus,
+  Trash2,
 } from 'lucide-react';
+import api from '../api';
 
 const InstagramIcon = () => (
   <svg className="w-4 h-4 fill-current text-rose-600" viewBox="0 0 24 24">
@@ -13,9 +15,19 @@ const InstagramIcon = () => (
   </svg>
 );
 
-export default function SocialAccountModal({ isOpen, onClose, currentAccount, onSelectAccount, onSyncLiveFeed }) {
-  if (!isOpen) return null;
+const TikTokIcon = () => (
+  <svg className="w-4 h-4 fill-current text-slate-800" viewBox="0 0 24 24">
+    <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.29 6.29 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.19 8.19 0 004.79 1.53V6.75a4.85 4.85 0 01-1.02-.06z"/>
+  </svg>
+);
 
+const PLATFORM_ICONS = {
+  instagram: <InstagramIcon />,
+  tiktok: <TikTokIcon />,
+  youtube: <span className="text-xs font-black text-red-600">YT</span>,
+};
+
+export default function SocialAccountModal({ isOpen, onClose, currentAccount, onSelectAccount, onSyncLiveFeed, onAccountsChanged }) {
   const [accounts, setAccounts] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [showAddForm, setShowAddForm] = React.useState(false);
@@ -23,115 +35,91 @@ export default function SocialAccountModal({ isOpen, onClose, currentAccount, on
   const [newHandle, setNewHandle] = React.useState('');
   const [newFollowers, setNewFollowers] = React.useState('');
   const [adding, setAdding] = React.useState(false);
+  const [syncing, setSyncing] = React.useState(false);
+  const [error, setError] = React.useState('');
 
-  const fetchAccounts = async () => {
+  // ─── LOAD AKUN SOSMED DARI API ─────────────────────────────────────────────
+  const fetchAccounts = React.useCallback(async () => {
     setLoading(true);
+    setError('');
     try {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch('/api/social-accounts', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
-        },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setAccounts(data);
-      }
+      const { data } = await api.get('/social-accounts');
+      setAccounts(data);
     } catch (err) {
-      console.error("Failed to fetch social accounts:", err);
+      console.error('Failed to fetch social accounts:', err);
+      setError('Gagal memuat daftar akun. Coba lagi.');
     } finally {
       setLoading(false);
     }
-  };
-
-  React.useEffect(() => {
-    fetchAccounts();
   }, []);
 
+  React.useEffect(() => {
+    if (isOpen) fetchAccounts();
+  }, [isOpen, fetchAccounts]);
+
+  // ─── HANDLER: Tambah akun baru ─────────────────────────────────────────────
   const handleAddAccount = async (e) => {
     e.preventDefault();
     if (!newHandle.trim()) return;
 
     setAdding(true);
-    const token = localStorage.getItem('auth_token');
-
+    setError('');
     try {
-      const response = await fetch('/api/social-accounts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          platform: newPlatform,
-          handle: newHandle,
-          followers_count: parseInt(newFollowers) || 12500,
-        }),
+      const { data } = await api.post('/social-accounts', {
+        platform: newPlatform,
+        handle: newHandle,
+        followers_count: parseInt(newFollowers) || undefined,
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setAccounts(prev => [...prev, data.account]);
-        onSelectAccount(data.account);
-        setNewHandle('');
-        setNewFollowers('');
-        setShowAddForm(false);
-      } else {
-        alert("Gagal menambahkan akun sosial.");
-      }
+      setAccounts(prev => [...prev, data.account]);
+      onSelectAccount(data.account);
+      setNewHandle('');
+      setNewFollowers('');
+      setShowAddForm(false);
+      if (onAccountsChanged) onAccountsChanged();
     } catch (err) {
-      console.error("Failed to add social account:", err);
+      const msg = err.response?.data?.message || 'Gagal menambahkan akun sosial.';
+      setError(msg);
     } finally {
       setAdding(false);
     }
   };
 
+  // ─── HANDLER: Hapus akun ───────────────────────────────────────────────────
   const handleDeleteAccount = async (id, e) => {
     e.stopPropagation();
-    if (!confirm("Apakah Anda yakin ingin melepaskan koneksi akun ini?")) return;
+    if (!confirm('Apakah Anda yakin ingin melepaskan koneksi akun ini?\nSemua data komentar yang terhubung akan ikut terhapus.')) return;
 
-    const token = localStorage.getItem('auth_token');
     try {
-      const response = await fetch(`/api/social-accounts/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        setAccounts(prev => prev.filter(acc => acc.id !== id));
+      await api.delete(`/social-accounts/${id}`);
+      setAccounts(prev => prev.filter(acc => acc.id !== id));
+      // Jika akun yang dihapus adalah akun yang sedang aktif, reset ke null
+      if (currentAccount?.id === id) {
+        onSelectAccount(null);
       }
+      if (onAccountsChanged) onAccountsChanged();
     } catch (err) {
-      console.error("Failed to delete account:", err);
+      console.error('Failed to delete account:', err);
+      setError('Gagal menghapus akun. Coba lagi.');
     }
   };
 
-  // Fallback demo accounts if empty
-  const displayAccounts = accounts.length > 0 ? accounts : [
-    {
-      id: 'demo-1',
-      handle: "@official_sabar_brand",
-      platform: "instagram",
-      followers_count: 128400,
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
-    },
-    {
-      id: 'demo-2',
-      handle: "@adiar_tiktok",
-      platform: "tiktok",
-      followers_count: 45000,
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80",
-    },
-  ];
+  // ─── HANDLER: Sinkronisasi webhook ────────────────────────────────────────
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      await onSyncLiveFeed();
+    } finally {
+      setSyncing(false);
+      onClose();
+    }
+  };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn">
       <div className="w-full max-w-md rounded-2xl bg-white border border-slate-200 shadow-2xl overflow-hidden">
-        
+
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70">
           <div className="flex items-center gap-2.5">
@@ -140,10 +128,10 @@ export default function SocialAccountModal({ isOpen, onClose, currentAccount, on
             </div>
             <div>
               <h3 className="text-sm font-bold text-slate-900 font-['Plus_Jakarta_Sans']">
-                Integrasi Media Sosial (MySQL DB)
+                Integrasi Media Sosial
               </h3>
               <p className="text-[11px] text-slate-500">
-                Instagram Graph API & TikTok API
+                Kelola akun yang dipantau sistem SABAR
               </p>
             </div>
           </div>
@@ -157,19 +145,31 @@ export default function SocialAccountModal({ isOpen, onClose, currentAccount, on
 
         {/* Body */}
         <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+
+          {/* Action Bar */}
           <div className="flex items-center justify-between">
             <p className="text-xs text-slate-500">
-              Pilih akun media sosial yang sedang dipantau oleh penapisan otomatis:
+              {accounts.length > 0
+                ? `${accounts.length} akun terhubung`
+                : 'Belum ada akun yang terhubung'}
             </p>
             <button
-              onClick={() => setShowAddForm(!showAddForm)}
-              className="text-xs font-bold text-teal-600 hover:underline"
+              onClick={() => { setShowAddForm(!showAddForm); setError(''); }}
+              className="text-xs font-bold text-teal-600 hover:underline flex items-center gap-1"
             >
-              {showAddForm ? "Batal" : "+ Tambah Akun"}
+              <Plus className="w-3.5 h-3.5" />
+              {showAddForm ? 'Batal' : 'Tambah Akun'}
             </button>
           </div>
 
-          {/* Form Add Account */}
+          {/* Error Banner */}
+          {error && (
+            <div className="p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-xs text-rose-700">
+              {error}
+            </div>
+          )}
+
+          {/* Form Tambah Akun */}
           {showAddForm && (
             <form onSubmit={handleAddAccount} className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
               <span className="text-xs font-bold text-slate-800">Hubungkan Akun Sosial Media Baru</span>
@@ -192,40 +192,57 @@ export default function SocialAccountModal({ isOpen, onClose, currentAccount, on
                   className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 placeholder-slate-400"
                 />
               </div>
+              <input
+                type="number"
+                placeholder="Jumlah followers (opsional)"
+                value={newFollowers}
+                onChange={(e) => setNewFollowers(e.target.value)}
+                className="w-full px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 placeholder-slate-400"
+              />
               <button
                 type="submit"
                 disabled={adding}
-                className="w-full py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition-all shadow-xs"
+                className="w-full py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition-all shadow-xs disabled:opacity-60"
               >
-                {adding ? "Menyimpan..." : "Simpan Akun ke Database"}
+                {adding ? 'Menyimpan...' : 'Simpan Akun ke Database'}
               </button>
             </form>
           )}
 
-          {/* Accounts List */}
+          {/* Daftar Akun */}
           <div className="space-y-2">
             {loading ? (
-              <p className="text-xs text-center py-4 text-slate-400 animate-pulse">Memuat daftar akun sosmed...</p>
+              <div className="py-8 flex flex-col items-center gap-2">
+                <div className="w-5 h-5 border-2 border-teal-400 border-t-transparent rounded-full animate-spin" />
+                <p className="text-xs text-slate-400">Memuat daftar akun...</p>
+              </div>
+            ) : accounts.length === 0 ? (
+              <div className="py-8 text-center space-y-2">
+                <p className="text-xs font-medium text-slate-500">Belum ada akun sosial media terhubung.</p>
+                <p className="text-[11px] text-slate-400">Klik "+ Tambah Akun" untuk memulai.</p>
+              </div>
             ) : (
-              displayAccounts.map((acc) => {
-                const isSelected = currentAccount?.handle === acc.handle || currentAccount?.id === acc.id;
+              accounts.map((acc) => {
+                const isSelected = currentAccount?.id === acc.id || currentAccount?.handle === acc.handle;
                 return (
                   <div
-                    key={acc.id || acc.handle}
+                    key={acc.id}
                     onClick={() => onSelectAccount(acc)}
                     className={`p-3.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
                       isSelected
                         ? 'bg-emerald-50/60 border-emerald-300 shadow-xs'
-                        : 'bg-white border-slate-200 hover:border-slate-300'
+                        : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-xs'
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-700 text-xs border border-slate-200">
-                        {acc.platform ? acc.platform[0].toUpperCase() : "I"}
+                      <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200">
+                        {PLATFORM_ICONS[acc.platform] || <span className="text-xs font-bold">{acc.platform?.[0]?.toUpperCase()}</span>}
                       </div>
                       <div>
                         <p className="text-xs font-bold text-slate-900">{acc.handle}</p>
-                        <p className="text-[11px] text-slate-500 uppercase">{acc.platform} • {(acc.followers_count || 12500).toLocaleString()} Pengikut</p>
+                        <p className="text-[11px] text-slate-500 uppercase">
+                          {acc.platform} · {(acc.followers_count || 0).toLocaleString('id-ID')} Pengikut
+                        </p>
                       </div>
                     </div>
 
@@ -236,16 +253,14 @@ export default function SocialAccountModal({ isOpen, onClose, currentAccount, on
                           Aktif
                         </span>
                       )}
-                      {acc.id && typeof acc.id === 'number' && (
-                        <button
-                          type="button"
-                          onClick={(e) => handleDeleteAccount(acc.id, e)}
-                          title="Hapus Koneksi"
-                          className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        onClick={(e) => handleDeleteAccount(acc.id, e)}
+                        title="Lepaskan koneksi"
+                        className="p-1 rounded text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-all"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
                 );
@@ -256,14 +271,12 @@ export default function SocialAccountModal({ isOpen, onClose, currentAccount, on
           {/* Sync Button */}
           <div className="pt-2 border-t border-slate-100">
             <button
-              onClick={() => {
-                onSyncLiveFeed();
-                onClose();
-              }}
-              className="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition-all flex items-center justify-center gap-2 shadow-sm"
+              onClick={handleSync}
+              disabled={syncing}
+              className="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-60"
             >
-              <RefreshCw className="w-3.5 h-3.5" />
-              Tarik Komentar Terbaru (Simulasi Webhook)
+              <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
+              {syncing ? 'Menarik komentar...' : 'Tarik Komentar Terbaru (Simulasi Webhook)'}
             </button>
           </div>
         </div>
@@ -274,7 +287,7 @@ export default function SocialAccountModal({ isOpen, onClose, currentAccount, on
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
             Meta Verified Webhook Protocol
           </span>
-          <button onClick={onClose} className="text-xs text-slate-500 hover:text-slate-800">
+          <button onClick={onClose} className="text-xs text-slate-500 hover:text-slate-800 font-medium">
             Tutup
           </button>
         </div>

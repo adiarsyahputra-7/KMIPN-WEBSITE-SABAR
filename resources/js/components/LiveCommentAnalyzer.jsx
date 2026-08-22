@@ -1,71 +1,64 @@
 import React, { useState } from 'react';
-import { 
-  Sparkles, 
-  Send, 
-  Eye, 
-  EyeOff, 
+import {
+  Sparkles,
+  Send,
+  Eye,
+  EyeOff,
   CornerDownRight,
-  HelpCircle
+  Loader2,
 } from 'lucide-react';
 import { samplePresetComments } from '../data/mockData';
+import api from '../api';
 
 export default function LiveCommentAnalyzer({ onAddComment }) {
-  const [inputText, setInputText] = useState("");
+  const [inputText, setInputText] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [analysisResult, setAnalysisResult] = useState(null);
 
+  // ─── ANALISIS LOKAL (Rule-based, akan diganti Gemini API di Fase 3) ────────
   const analyzeTextLocal = (text) => {
     const lower = text.toLowerCase();
 
-    // Sarcasm triggers
-    const sarcasmPatterns = ["keren tapi", "bagus banget sampai", "kayak siput", "hebat banget ya", "sampai rusak"];
+    const sarcasmPatterns = ['keren tapi', 'bagus banget sampai', 'kayak siput', 'hebat banget ya', 'sampai rusak', 'mantap banget ya', 'bagus sih tapi'];
     const isSarcasm = sarcasmPatterns.some(p => lower.includes(p));
 
-    // Harsh/Toxic triggers
-    const toxicPatterns = ["sampah", "bego", "jijik", "caper", "mati", "mundur aja", "gak guna", "gak pantes", "anjing", "bangsat", "tolol"];
+    const toxicPatterns = ['sampah', 'bego', 'jijik', 'caper', 'mati', 'mundur aja', 'gak guna', 'gak pantes', 'anjing', 'bangsat', 'tolol', 'idiot', 'bodoh', 'goblok'];
     const hasToxic = toxicPatterns.some(p => lower.includes(p));
 
-    // Positive triggers
-    const positivePatterns = ["bagus", "terima kasih", "suka banget", "menginspirasi", "keren parah", "sukses terus", "ramah", "rapi", "mantap"];
+    const positivePatterns = ['bagus', 'terima kasih', 'suka banget', 'menginspirasi', 'keren parah', 'sukses terus', 'ramah', 'rapi', 'mantap', 'luar biasa', 'semangat', 'keren'];
     const hasPositive = positivePatterns.some(p => lower.includes(p));
 
-    let sentiment = "NETRAL";
+    let sentiment = 'NETRAL';
     let toxicity_score = 0.05;
     let severity = 1;
-    let action = "ALLOW";
+    let action = 'ALLOW';
 
     if (hasToxic || isSarcasm) {
-      sentiment = "NEGATIF";
+      sentiment = 'NEGATIF';
       toxicity_score = isSarcasm ? 0.82 : 0.92;
       severity = isSarcasm ? 8 : 9;
-      action = "HIDE";
+      action = 'HIDE';
     } else if (hasPositive) {
-      sentiment = "POSITIF";
+      sentiment = 'POSITIF';
       toxicity_score = 0.02;
       severity = 1;
-      action = "ALLOW";
+      action = 'ALLOW';
     } else {
-      sentiment = "NETRAL";
       toxicity_score = 0.12;
-      severity = 1;
-      action = "ALLOW";
+      severity = 2;
     }
 
-    return {
-      sentiment,
-      toxicity_score,
-      severity,
-      is_sarcasm: isSarcasm,
-      action,
-      is_hidden: action === "HIDE",
-    };
+    return { sentiment, toxicity_score, severity, is_sarcasm: isSarcasm, action, is_hidden: action === 'HIDE' };
   };
 
+  // ─── ANALISIS TEKS ─────────────────────────────────────────────────────────
   const handleAnalyze = (e) => {
     e?.preventDefault();
     if (!inputText.trim()) return;
 
     setAnalyzing(true);
+    // Simulasikan latency model NLP (250ms)
     setTimeout(() => {
       const result = analyzeTextLocal(inputText);
       setAnalysisResult(result);
@@ -73,59 +66,54 @@ export default function LiveCommentAnalyzer({ onAddComment }) {
     }, 250);
   };
 
+  // ─── APPLY KE FEED: simpan ke database lalu tampilkan ─────────────────────
   const handleApplyToFeed = async () => {
     if (!inputText.trim() || !analysisResult) return;
 
-    const token = localStorage.getItem('auth_token');
-
+    setSaving(true);
     try {
-      const response = await fetch('/api/comments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          author: "@user_uji_demo",
-          text: inputText,
-          sentiment: analysisResult.sentiment,
-          toxicity_score: analysisResult.toxicity_score,
-          severity: analysisResult.severity,
-          is_sarcasm: analysisResult.is_sarcasm,
-          action: analysisResult.action,
-          is_hidden: analysisResult.is_hidden,
-        }),
+      const { data } = await api.post('/comments', {
+        author: '@user_uji_demo',
+        text: inputText,
+        sentiment: analysisResult.sentiment,
+        toxicity_score: analysisResult.toxicity_score,
+        severity: analysisResult.severity,
+        is_sarcasm: analysisResult.is_sarcasm,
+        action: analysisResult.action,
+        is_hidden: analysisResult.is_hidden,
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        onAddComment(data.comment || data);
-      } else {
-        // Fallback to local optimistic add
-        const newComment = {
-          id: `cmt-${Date.now()}`,
-          author: "@user_uji_demo",
-          avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80",
-          platform: "Instagram",
-          postTitle: "Simulasi Uji Moderasi",
-          text: inputText,
-          ...analysisResult,
-          timestamp: "Baru saja",
-        };
-        onAddComment(newComment);
-      }
+      // Gunakan data dari server (berisi ID database yang nyata)
+      onAddComment(data.comment || data);
     } catch (err) {
-      console.error("Failed to save comment to database:", err);
+      console.error('Failed to save comment:', err);
+      // Fallback: tambahkan ke tampilan tanpa menyimpan ke DB
+      onAddComment({
+        id: `local-${Date.now()}`,
+        author: '@user_uji_demo',
+        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80',
+        platform: 'Demo',
+        post_title: 'Simulasi Uji Moderasi',
+        text: inputText,
+        ...analysisResult,
+        timestamp: 'Baru saja',
+      });
     } finally {
-      setInputText("");
+      setInputText('');
       setAnalysisResult(null);
+      setSaving(false);
     }
   };
 
+  const sentimentColor = {
+    POSITIF: 'bg-emerald-100 text-emerald-800',
+    NEGATIF: 'bg-rose-100 text-rose-800',
+    NETRAL: 'bg-slate-200 text-slate-700',
+  };
+
   return (
-    <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4">
-      
+    <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4 h-full">
+
       {/* Header */}
       <div className="flex items-center justify-between pb-3 border-b border-slate-100">
         <div>
@@ -133,11 +121,11 @@ export default function LiveCommentAnalyzer({ onAddComment }) {
             Uji Coba Deteksi NLP Kontekstual
           </h3>
           <p className="text-[11px] text-slate-500">
-            Analisis sentimen, sarkasme lokal, dan skor toksisitas secara seketika
+            Analisis sentimen, sarkasme, dan skor toksisitas secara seketika
           </p>
         </div>
         <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
-          Model: IndoBERT Multi-Context
+          Model: Rule-Based → Gemini AI (Fase 3)
         </span>
       </div>
 
@@ -160,33 +148,29 @@ export default function LiveCommentAnalyzer({ onAddComment }) {
 
       {/* Input Box */}
       <form onSubmit={handleAnalyze} className="space-y-3">
-        <div className="relative">
-          <textarea
-            value={inputText}
-            onChange={(e) => {
-              setInputText(e.target.value);
-              if (analysisResult) setAnalysisResult(null);
-            }}
-            rows={2}
-            placeholder="Masukkan contoh komentar bahasa Indonesia (baku, gaul/slang, sindiran bermakna ganda)..."
-            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 transition-all resize-none"
-          />
-        </div>
-
+        <textarea
+          value={inputText}
+          onChange={(e) => {
+            setInputText(e.target.value);
+            if (analysisResult) setAnalysisResult(null);
+          }}
+          rows={2}
+          placeholder="Masukkan contoh komentar Bahasa Indonesia (baku, gaul/slang, sindiran)..."
+          className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 transition-all resize-none"
+        />
         <div className="flex items-center justify-between">
           <p className="text-[11px] text-slate-400">
-            *Mendeteksi ambiguitas dan pola kalimat sarkasme Indonesia.
+            * Mendeteksi ambiguitas dan pola kalimat sarkasme Indonesia.
           </p>
           <button
             type="submit"
             disabled={!inputText.trim() || analyzing}
             className="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 disabled:opacity-40 transition-all flex items-center gap-1.5 shadow-sm"
           >
-            {analyzing ? (
-              <span className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full" />
-            ) : (
-              <Send className="w-3.5 h-3.5" />
-            )}
+            {analyzing
+              ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              : <Send className="w-3.5 h-3.5" />
+            }
             Analisis Teks
           </button>
         </div>
@@ -198,22 +182,18 @@ export default function LiveCommentAnalyzer({ onAddComment }) {
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-700">Hasil Analisis Model:</span>
             <div className="flex items-center gap-2">
-              <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-                analysisResult.sentiment === 'POSITIF'
-                  ? 'bg-emerald-100 text-emerald-800'
-                  : analysisResult.sentiment === 'NEGATIF'
-                  ? 'bg-rose-100 text-rose-800'
-                  : 'bg-slate-200 text-slate-700'
-              }`}>
-                {analysisResult.sentiment} {analysisResult.is_sarcasm && "• Sarkasme"}
+              <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${sentimentColor[analysisResult.sentiment]}`}>
+                {analysisResult.sentiment}{analysisResult.is_sarcasm ? ' · Sarkasme' : ''}
               </span>
-
               <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold flex items-center gap-1 ${
                 analysisResult.action === 'HIDE'
                   ? 'bg-rose-600 text-white'
                   : 'bg-emerald-600 text-white'
               }`}>
-                {analysisResult.action === 'HIDE' ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                {analysisResult.action === 'HIDE'
+                  ? <EyeOff className="w-3 h-3" />
+                  : <Eye className="w-3 h-3" />
+                }
                 {analysisResult.action === 'HIDE' ? 'AUTO-HIDE' : 'ALLOWED'}
               </span>
             </div>
@@ -230,22 +210,25 @@ export default function LiveCommentAnalyzer({ onAddComment }) {
             </div>
             <div className="p-2 bg-white rounded-lg border border-slate-200">
               <p className="text-[10px] text-slate-400 font-medium">Pola Sarkasme</p>
-              <p className="font-bold text-slate-800 mt-0.5">{analysisResult.is_sarcasm ? "Terdeteksi ✓" : "Tidak"}</p>
+              <p className="font-bold text-slate-800 mt-0.5">{analysisResult.is_sarcasm ? 'Terdeteksi ✓' : 'Tidak'}</p>
             </div>
           </div>
 
           <div className="pt-2 border-t border-slate-200 flex justify-end">
             <button
               onClick={handleApplyToFeed}
-              className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-xs font-semibold text-slate-700 border border-slate-300 transition-all flex items-center gap-1.5"
+              disabled={saving}
+              className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-xs font-semibold text-slate-700 border border-slate-300 transition-all flex items-center gap-1.5 disabled:opacity-60"
             >
-              <CornerDownRight className="w-3.5 h-3.5 text-emerald-600" />
-              Masukkan ke Log Komentar Live
+              {saving
+                ? <Loader2 className="w-3.5 h-3.5 animate-spin text-teal-600" />
+                : <CornerDownRight className="w-3.5 h-3.5 text-emerald-600" />
+              }
+              {saving ? 'Menyimpan ke Database...' : 'Masukkan ke Log Komentar Live'}
             </button>
           </div>
         </div>
       )}
-
     </div>
   );
 }
