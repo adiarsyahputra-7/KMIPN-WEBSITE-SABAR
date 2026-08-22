@@ -22,3 +22,30 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #94A3B8;
 }
+
+/* ─── Custom Animations ─────────────────────────────────────────────────── */
+
+/* Fade + Slide Up — digunakan oleh OAuthToast dan modal */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.25s ease-out both;
+}
+
+/* Shrink X — progress bar auto-close di OAuthToast */
+@keyframes shrinkX {
+  from { width: 100%; }
+  to   { width: 0%; }
+}
+.animate-shrink-x {
+  animation: shrinkX 6s linear forwards;
+}
+
+/* Spin — override agar bisa digunakan sebagai utility class di React */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+

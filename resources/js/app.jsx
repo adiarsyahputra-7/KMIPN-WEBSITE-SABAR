@@ -2,14 +2,39 @@ import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import Dashboard from './components/Dashboard';
 import LoginPage from './components/LoginPage';
+import OAuthToast from './components/OAuthToast';
 import api from './api';
 import '../css/app.css';
 
 function App() {
   const [user, setUser] = useState(null);
-  // Mulai dalam status loading jika ada token tersimpan,
-  // agar tidak muncul flash halaman login sebelum sesi dikonfirmasi.
   const [loading, setLoading] = useState(!!localStorage.getItem('auth_token'));
+
+  // ─── STATE UNTUK OAUTH TOAST NOTIFICATION ──────────────────────────────────
+  // Dibaca dari URL query params yang dikirim oleh InstagramAuthController
+  const [oauthToast, setOauthToast] = useState(null);
+
+  // ─── BACA QUERY PARAMS OAUTH DARI URL ──────────────────────────────────────
+  // InstagramAuthController::redirectToFrontendWithResult() mengirim:
+  //   /?instagram_connected=1&message=Berhasil menghubungkan...
+  //   /?instagram_connected=0&message=Koneksi dibatalkan...
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const connected = params.get('instagram_connected');
+    const message = params.get('message');
+
+    if (connected !== null && message) {
+      setOauthToast({
+        success: connected === '1',
+        message: decodeURIComponent(message),
+      });
+
+      // Bersihkan URL dari query params menggunakan History API
+      // agar URL terlihat bersih tanpa refresh halaman
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
+    }
+  }, []);
 
   // ─── CEK SESI TOKEN SAAT PERTAMA KALI DIBUKA ──────────────────────────────
   useEffect(() => {
@@ -19,7 +44,6 @@ function App() {
       return;
     }
 
-    // Token ada — verifikasi ke backend apakah masih valid
     api.get('/auth/me')
       .then((res) => {
         const userData = res.data;
@@ -32,7 +56,6 @@ function App() {
         });
       })
       .catch(() => {
-        // Token tidak valid atau expired — hapus dan tampilkan login
         localStorage.removeItem('auth_token');
       })
       .finally(() => {
@@ -45,7 +68,7 @@ function App() {
     try {
       await api.post('/auth/logout');
     } catch {
-      // Abaikan error saat logout (token mungkin sudah expired)
+      // Abaikan error saat logout
     } finally {
       localStorage.removeItem('auth_token');
       setUser(null);
@@ -75,7 +98,24 @@ function App() {
     return <LoginPage onLogin={(userData) => setUser(userData)} />;
   }
 
-  return <Dashboard user={user} onLogout={handleLogout} />;
+  return (
+    <>
+      <Dashboard
+        user={user}
+        onLogout={handleLogout}
+        oauthSuccess={oauthToast?.success}
+      />
+
+      {/* OAuth Toast Notification — muncul setelah kembali dari alur Instagram OAuth */}
+      {oauthToast && (
+        <OAuthToast
+          success={oauthToast.success}
+          message={oauthToast.message}
+          onClose={() => setOauthToast(null)}
+        />
+      )}
+    </>
+  );
 }
 
 const rootElement = document.getElementById('root');

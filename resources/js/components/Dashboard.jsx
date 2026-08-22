@@ -313,6 +313,7 @@ export default function Dashboard({ user, onLogout }) {
         onSelectAccount={(acc) => setConnectedAccount(acc)}
         onSyncLiveFeed={handleSyncLiveFeed}
         onAccountsChanged={loadDashboardData}
+        user={user}
       />
     </div>
   );
