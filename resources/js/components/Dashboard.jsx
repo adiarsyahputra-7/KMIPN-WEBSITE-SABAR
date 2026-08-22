@@ -136,58 +136,21 @@ export default function Dashboard({ user, onLogout }) {
     }
   }, [loadDashboardData]);
 
-  // ─── HANDLER: Sinkronisasi webhook simulasi ────────────────────────────────
+  // ─── HANDLER: Sinkronisasi Komentar Instagram (Live API / Simulasi) ────────
   const handleSyncLiveFeed = useCallback(async () => {
-    // Batch komentar simulasi: disimpan langsung ke API agar masuk database
-    const simulatedBatch = [
-      {
-        author: '@netizen_kreatif',
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
-        post_title: 'Simulasi Webhook Live Feed',
-        text: 'Keren banget terobosan barunya, sangat membantu kesehatan mental!',
-        sentiment: 'POSITIF',
-        toxicity_score: 0.02,
-        severity: 1,
-        is_sarcasm: false,
-        action: 'ALLOW',
-        is_hidden: false,
-      },
-      {
-        author: '@toxic_spammer_x',
-        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80',
-        post_title: 'Simulasi Webhook Live Feed',
-        text: 'Mending bubar aja kalian gaada gunanya sama sekali buat masyarakat.',
-        sentiment: 'NEGATIF',
-        toxicity_score: 0.95,
-        severity: 9,
-        is_sarcasm: false,
-        action: 'HIDE',
-        is_hidden: true,
-      },
-    ];
-
     try {
-      // Simpan semua komentar simulasi ke database secara parallel
-      const results = await Promise.all(
-        simulatedBatch.map(comment => api.post('/comments', comment))
-      );
-      // Tambah ke tampilan dari respons API (berisi ID database yang nyata)
-      const newComments = results.map(r => r.data.comment || r.data).filter(Boolean);
-      setComments(prev => [...newComments.reverse(), ...prev]);
-      // Refresh stats
-      const { data } = await api.get('/dashboard/stats');
-      setApiStats(data);
+      if (connectedAccount?.id) {
+        // Panggil endpoint sinkronisasi backend yang menghubungi Instagram Graph API
+        await api.post(`/social-accounts/${connectedAccount.id}/sync`);
+      }
+      // Muat ulang komentar dan statistik terbaru dari database
+      await loadDashboardData();
     } catch (err) {
       console.error('Sync live feed failed:', err);
-      // Fallback: tampilkan di UI saja tanpa menyimpan ke DB
-      const fallbackComments = simulatedBatch.map((c, i) => ({
-        ...c,
-        id: `batch-${Date.now()}-${i}`,
-        timestamp: 'Baru saja',
-      }));
-      setComments(prev => [...fallbackComments, ...prev]);
+      // Fallback: muat ulang data dashboard
+      await loadDashboardData();
     }
-  }, []);
+  }, [connectedAccount, loadDashboardData]);
 
   // ─── LOADING STATE ─────────────────────────────────────────────────────────
   const defaultAccount = {

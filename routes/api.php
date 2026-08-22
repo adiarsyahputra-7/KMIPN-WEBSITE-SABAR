@@ -47,6 +47,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/social-accounts', [SocialAccountController::class, 'index']);
     Route::post('/social-accounts', [SocialAccountController::class, 'store']);
     Route::delete('/social-accounts/{id}', [SocialAccountController::class, 'destroy']);
+    Route::post('/social-accounts/{id}/sync', [SocialAccountController::class, 'sync'])
+        ->name('instagram.account.sync');
 
     // ─── Instagram Token Management ────────────────────────────────────────
     // Memperbarui Long-Lived Token yang hampir kedaluwarsa tanpa login ulang ke Meta.

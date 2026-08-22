@@ -2,16 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
 use App\Models\Comment;
+use App\Services\InstagramService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Exception;
 
 class CommentController extends Controller
 {
+    protected InstagramService $instagramService;
+
+    public function __construct(InstagramService $instagramService)
+    {
+        $this->instagramService = $instagramService;
+    }
+
     public function index(Request $request)
     {
         $user = auth()->user();
-        
+
         $query = $user->comments()->with('socialAccount');
 
         // Filter by sentiment
@@ -27,7 +36,7 @@ class CommentController extends Controller
         // Search text or author
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('text', 'like', "%{$search}%")
                   ->orWhere('author', 'like', "%{$search}%");
             });
@@ -54,9 +63,9 @@ class CommentController extends Controller
         ]);
 
         $user = auth()->user();
-        
+
         // Use first social account if not specified
-        $socialAccountId = $validated['social_account_id'] 
+        $socialAccountId = $validated['social_account_id']
             ?? $user->socialAccounts()->first()?->id;
 
         if (!$socialAccountId) {
@@ -74,6 +83,7 @@ class CommentController extends Controller
 
         $comment = Comment::create([
             'social_account_id' => $socialAccountId,
+            'platform_comment_id' => 'custom_' . time() . '_' . rand(100, 999),
             'author' => $validated['author'],
             'avatar' => $validated['avatar'] ?? "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
             'post_title' => $validated['post_title'] ?? "Live Feed Post",
@@ -93,10 +103,13 @@ class CommentController extends Controller
         ], 201);
     }
 
+    /**
+     * Moderasi: Toggle sembunyikan/tampilkan komentar dan sinkronkan langsung ke Instagram jika ada token.
+     */
     public function toggleHide(Request $request, $id)
     {
-        $comment = Comment::findOrFail($id);
-        
+        $comment = Comment::with('socialAccount')->findOrFail($id);
+
         // Ensure user owns this comment
         if ($comment->socialAccount->user_id !== auth()->id()) {
             return response()->json(['message' => 'Unauthorized'], 403);
@@ -106,15 +119,49 @@ class CommentController extends Controller
         $comment->action = $comment->is_hidden ? 'HIDE' : 'ALLOW';
         $comment->save();
 
-        return response()->json(['message' => 'Status moderasi berhasil diperbarui', 'comment' => $comment]);
+        // ── Sinkronkan ke Instagram Graph API secara real-time ───────────────
+        $socialAccount = $comment->socialAccount;
+        $accessToken = $socialAccount->getEffectiveAccessToken();
+
+        if ($accessToken && $comment->platform_comment_id && !str_starts_with($comment->platform_comment_id, 'sim_') && !str_starts_with($comment->platform_comment_id, 'custom_')) {
+            try {
+                $this->instagramService->hideComment($comment->platform_comment_id, $accessToken, $comment->is_hidden);
+                Log::info('Comment toggleHide synced to Instagram', [
+                    'comment_id' => $comment->platform_comment_id,
+                    'hidden' => $comment->is_hidden,
+                ]);
+            } catch (Exception $e) {
+                Log::warning('Failed to sync hide status to Instagram: ' . $e->getMessage());
+            }
+        }
+
+        return response()->json([
+            'message' => 'Status moderasi berhasil diperbarui',
+            'comment' => $comment,
+        ]);
     }
 
+    /**
+     * Hapus komentar dan sinkronkan penghapusan ke Instagram jika ada token.
+     */
     public function destroy(Request $request, $id)
     {
-        $comment = Comment::findOrFail($id);
-        
+        $comment = Comment::with('socialAccount')->findOrFail($id);
+
         if ($comment->socialAccount->user_id !== auth()->id()) {
             return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $socialAccount = $comment->socialAccount;
+        $accessToken = $socialAccount->getEffectiveAccessToken();
+
+        if ($accessToken && $comment->platform_comment_id && !str_starts_with($comment->platform_comment_id, 'sim_') && !str_starts_with($comment->platform_comment_id, 'custom_')) {
+            try {
+                $this->instagramService->deleteComment($comment->platform_comment_id, $accessToken);
+                Log::info('Comment deleted on Instagram', ['comment_id' => $comment->platform_comment_id]);
+            } catch (Exception $e) {
+                Log::warning('Failed to delete comment on Instagram: ' . $e->getMessage());
+            }
         }
 
         $comment->delete();
