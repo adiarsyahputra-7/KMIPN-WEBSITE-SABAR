@@ -32,7 +32,6 @@ class InstagramService
      */
     public function getAuthorizationUrl(array $scopes = [], ?string $state = null): string
     {
-        if (empty($scopes)) {
             $scopes = [
                 'public_profile',
                 'pages_show_list',
@@ -40,8 +39,8 @@ class InstagramService
                 'instagram_basic',
                 'instagram_manage_comments',
                 'instagram_manage_insights',
+                'business_management', // ← FIX: Untuk New Pages Experience & Business Suite
             ];
-        }
 
         $params = [
             'client_id' => $this->appId,
@@ -128,6 +127,18 @@ class InstagramService
     public function getConnectedInstagramAccounts(string $userAccessToken): array
     {
         try {
+            // ── DEBUG: Cek izin yang benar-benar diberikan oleh user ───────────
+            try {
+                $permissionsResponse = Http::get("{$this->graphUrl}/me/permissions", [
+                    'access_token' => $userAccessToken,
+                ]);
+                Log::info('Meta API Granted Permissions:', [
+                    'permissions' => $permissionsResponse->json('data') ?? [],
+                ]);
+            } catch (Exception $e) {
+                Log::warning('Failed to query /me/permissions: ' . $e->getMessage());
+            }
+
             // ── Jalur 1: Instagram Business Account via Facebook Pages ────────
             // Ini adalah jalur standar untuk akun Instagram yang dikelola melalui
             // Facebook Business Page (paling umum untuk akun Bisnis).

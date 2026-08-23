@@ -57,6 +57,7 @@ class InstagramAuthController extends Controller
                 'instagram_basic',
                 'instagram_manage_comments',
                 'instagram_manage_insights',
+                'business_management', // ← FIX: Penting jika halaman dikelola di bawah Meta Business Suite / New Pages Experience
             ],
             $state
         );
