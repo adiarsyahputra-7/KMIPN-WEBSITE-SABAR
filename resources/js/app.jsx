@@ -48,6 +48,7 @@ function App() {
       .then((res) => {
         const userData = res.data;
         setUser({
+          id: userData.id,   // ← FIX: diperlukan agar user_id OAuth tidak null
           name: userData.name,
           email: userData.email,
           role: userData.role || 'creator',

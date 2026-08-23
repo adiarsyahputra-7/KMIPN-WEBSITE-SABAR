@@ -65,6 +65,9 @@ export default function SocialAccountModal({
   const [syncing, setSyncing] = React.useState(false);
   const [refreshingTokenId, setRefreshingTokenId] = React.useState(null);
   const [error, setError] = React.useState('');
+  const [demoMode, setDemoMode] = React.useState(false);
+  const [demoHandle, setDemoHandle] = React.useState('');
+  const [demoLoading, setDemoLoading] = React.useState(false);
 
   // ─── LOAD AKUN DARI DATABASE ───────────────────────────────────────────────
   const fetchAccounts = React.useCallback(async () => {
@@ -132,6 +135,31 @@ export default function SocialAccountModal({
     } catch (err) {
       console.error('Failed to delete account:', err);
       setError('Gagal menghapus akun. Coba lagi.');
+    }
+  };
+
+  // ─── HANDLER: Demo Mode — sambungkan akun secara manual tanpa OAuth ──────
+  // Digunakan saat Meta API belum siap (akun baru, propagasi 24-48 jam)
+  // atau untuk keperluan demo/presentasi.
+  const handleDemoConnect = async () => {
+    if (!demoHandle.trim()) return;
+    setDemoLoading(true);
+    setError('');
+    try {
+      const handle = demoHandle.trim().startsWith('@') ? demoHandle.trim() : '@' + demoHandle.trim();
+      const { data } = await api.post('/social-accounts', {
+        platform: 'instagram',
+        handle: handle,
+        followers_count: Math.floor(Math.random() * 45000) + 5000,
+      });
+      setDemoHandle('');
+      setDemoMode(false);
+      await fetchAccounts();
+      if (onAccountsChanged) onAccountsChanged();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Gagal menambahkan akun demo.');
+    } finally {
+      setDemoLoading(false);
     }
   };
 
@@ -221,8 +249,47 @@ export default function SocialAccountModal({
               <p className="text-center text-[10px] text-slate-400">
                 Anda akan diarahkan ke halaman login Facebook/Instagram untuk memberikan izin akses.
               </p>
+
+              {/* ── Demo Mode Toggle ──────────────────────────────────────── */}
+              <div className="border-t border-slate-100 pt-3">
+                <button
+                  onClick={() => { setDemoMode(!demoMode); setError(''); }}
+                  className="w-full flex items-center justify-between text-[11px] text-slate-500 hover:text-slate-700 transition-colors"
+                >
+                  <span className="font-medium">⚡ Mode Demo (API belum siap? Hubungkan manual)</span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold transition-colors ${demoMode ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'}`}>
+                    {demoMode ? 'Aktif' : 'Nonaktif'}
+                  </span>
+                </button>
+
+                {demoMode && (
+                  <div className="mt-2.5 space-y-2 animate-fadeIn">
+                    <p className="text-[10px] text-amber-700 bg-amber-50 rounded-lg px-3 py-2 border border-amber-200">
+                      ⚠️ Mode ini untuk demo/presentasi. Masukkan username Instagram Anda secara manual. Sistem moderasi akan tetap berjalan penuh dengan simulasi komentar.
+                    </p>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={demoHandle}
+                        onChange={(e) => setDemoHandle(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleDemoConnect()}
+                        placeholder="@username_instagram_anda"
+                        className="flex-1 text-xs px-3 py-2.5 rounded-xl border border-slate-200 focus:border-rose-400 focus:ring-2 focus:ring-rose-100 outline-none transition-all bg-white"
+                      />
+                      <button
+                        onClick={handleDemoConnect}
+                        disabled={demoLoading || !demoHandle.trim()}
+                        className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white text-xs font-bold transition-all"
+                      >
+                        {demoLoading ? '...' : 'Tambah'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
+
 
           {/* ── Garis Pemisah ─────────────────────────────────────────────── */}
           <div className="relative">

@@ -48,6 +48,7 @@ class InstagramService
             'redirect_uri' => $this->redirectUri,
             'scope' => implode(',', $scopes),
             'response_type' => 'code',
+            'auth_type' => 'rerequest', // Memaksa Meta menampilkan ulang layar pemilihan akun & page
         ];
 
         if ($state) {
@@ -127,6 +128,9 @@ class InstagramService
     public function getConnectedInstagramAccounts(string $userAccessToken): array
     {
         try {
+            // ── Jalur 1: Instagram Business Account via Facebook Pages ────────
+            // Ini adalah jalur standar untuk akun Instagram yang dikelola melalui
+            // Facebook Business Page (paling umum untuk akun Bisnis).
             $response = Http::get("{$this->graphUrl}/me/accounts", [
                 'fields' => 'id,name,access_token,instagram_business_account{id,username,name,profile_picture_url,followers_count,media_count}',
                 'access_token' => $userAccessToken,
@@ -139,6 +143,11 @@ class InstagramService
             }
 
             $pages = $response->json('data') ?? [];
+            Log::info('Instagram API /me/accounts response:', [
+                'raw' => $response->json(),
+                'pages_count' => count($pages),
+            ]);
+
             $connectedAccounts = [];
 
             foreach ($pages as $page) {
@@ -155,6 +164,43 @@ class InstagramService
                         'followers_count' => $ig['followers_count'] ?? 0,
                         'media_count' => $ig['media_count'] ?? 0,
                     ];
+                } else {
+                    Log::warning('Page found but no instagram_business_account attached:', [
+                        'page_id' => $page['id'],
+                        'page_name' => $page['name'] ?? 'unnamed',
+                    ]);
+                }
+            }
+
+            // ── Jalur 2: Fallback untuk Instagram Creator Account ─────────────
+            // Akun Instagram Creator (Kreator) tidak selalu muncul di /me/accounts
+            // karena jalur tersebut dirancang untuk akun Bisnis yang dikelola via
+            // Facebook Business Manager. Kreator perlu dideteksi via endpoint /me
+            // dengan field instagram_business_account langsung pada user token.
+            if (empty($connectedAccounts)) {
+                Log::info('No Business accounts via /me/accounts. Trying Creator Account fallback via /me...');
+
+                $meResponse = Http::get("{$this->graphUrl}/me", [
+                    'fields' => 'id,name,instagram_business_account{id,username,name,profile_picture_url,followers_count,media_count}',
+                    'access_token' => $userAccessToken,
+                ]);
+
+                Log::info('Instagram API /me response (creator fallback):', ['raw' => $meResponse->json()]);
+
+                if ($meResponse->ok() && !empty($meResponse->json('instagram_business_account'))) {
+                    $ig = $meResponse->json('instagram_business_account');
+                    $connectedAccounts[] = [
+                        'page_id' => $meResponse->json('id'),
+                        'page_name' => $meResponse->json('name') ?? 'Akun Kreator',
+                        'page_access_token' => $userAccessToken,
+                        'instagram_id' => $ig['id'],
+                        'username' => $ig['username'] ?? '',
+                        'name' => $ig['name'] ?? '',
+                        'profile_picture_url' => $ig['profile_picture_url'] ?? null,
+                        'followers_count' => $ig['followers_count'] ?? 0,
+                        'media_count' => $ig['media_count'] ?? 0,
+                    ];
+                    Log::info('Creator Account found via /me fallback:', ['username' => $ig['username'] ?? 'unknown']);
                 }
             }
 
@@ -164,6 +210,7 @@ class InstagramService
             throw $e;
         }
     }
+
 
     /**
      * Mengambil detail lengkap akun Instagram Bisnis/Kreator berdasarkan ID Instagram.
