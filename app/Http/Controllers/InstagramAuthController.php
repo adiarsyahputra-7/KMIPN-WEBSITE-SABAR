@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Exception;
@@ -26,17 +27,27 @@ class InstagramAuthController extends Controller
      *
      * Endpoint: GET /auth/instagram
      *
-     * Menghasilkan state CSRF acak untuk mencegah serangan CSRF di alur OAuth,
-     * menyimpannya di session, lalu me-redirect browser pengguna ke dialog
-     * otorisasi resmi Facebook/Meta.
+     * Menghasilkan state CSRF acak, menyimpannya di Cache (lebih reliable
+     * dari Session untuk alur OAuth redirect lintas domain), lalu me-redirect
+     * browser pengguna ke dialog otorisasi resmi Facebook/Meta.
      */
     public function redirect(Request $request)
     {
-        // Simpan user_id yang meminta koneksi (untuk digunakan di callback)
-        // karena setelah redirect ke Meta, session Sanctum mungkin tidak tersedia
         $state = Str::random(40);
+        $userId = $request->user()?->id ?? $request->query('user_id');
+
+        // Simpan state dan user_id di Cache (berlaku 10 menit)
+        // Menggunakan Cache alih-alih Session karena Session sering hilang
+        // setelah redirect lintas domain (Facebook → localhost) di php artisan serve
+        Cache::put("instagram_oauth_state_{$state}", [
+            'state' => $state,
+            'user_id' => $userId,
+        ], now()->addMinutes(10));
+
+        // Juga simpan di Session sebagai fallback
         Session::put('instagram_oauth_state', $state);
-        Session::put('instagram_oauth_user_id', $request->user()?->id ?? $request->query('user_id'));
+        Session::put('instagram_oauth_user_id', $userId);
+        Session::save(); // Force save session sebelum redirect
 
         $authUrl = $this->instagramService->getAuthorizationUrl(
             [
@@ -51,7 +62,7 @@ class InstagramAuthController extends Controller
         );
 
         Log::info('Instagram OAuth redirect initiated', [
-            'user_id' => Session::get('instagram_oauth_user_id'),
+            'user_id' => $userId,
             'state' => $state,
         ]);
 
@@ -64,8 +75,9 @@ class InstagramAuthController extends Controller
      * Endpoint: GET /auth/instagram/callback
      *
      * Meta akan me-redirect ke URL ini setelah pengguna mengizinkan / menolak
-     * akses. Kita validasi state CSRF, tukar code menjadi Long-Lived Token,
-     * ambil akun Instagram yang terhubung, lalu simpan ke database.
+     * akses. Kita validasi state CSRF via Cache (primary) atau Session (fallback),
+     * tukar code menjadi Long-Lived Token, ambil akun Instagram yang terhubung,
+     * lalu simpan ke database.
      */
     public function callback(Request $request)
     {
@@ -81,15 +93,37 @@ class InstagramAuthController extends Controller
             );
         }
 
-        // ── Validasi State CSRF ──────────────────────────────────────────────
+        // ── Validasi State CSRF (Cache primary, Session fallback) ────────────
         $state = $request->query('state');
-        $savedState = Session::pull('instagram_oauth_state');
-        $userId = Session::pull('instagram_oauth_user_id');
+        $userId = null;
+        $stateValid = false;
 
-        if (!$state || $state !== $savedState) {
+        // Coba ambil dari Cache terlebih dahulu (paling reliable)
+        if ($state) {
+            $cached = Cache::pull("instagram_oauth_state_{$state}");
+            if ($cached && $cached['state'] === $state) {
+                $stateValid = true;
+                $userId = $cached['user_id'];
+                Log::info('OAuth state validated via Cache', ['user_id' => $userId]);
+            }
+        }
+
+        // Fallback: coba dari Session
+        if (!$stateValid) {
+            $savedState = Session::pull('instagram_oauth_state');
+            $sessionUserId = Session::pull('instagram_oauth_user_id');
+
+            if ($state && $state === $savedState) {
+                $stateValid = true;
+                $userId = $sessionUserId;
+                Log::info('OAuth state validated via Session fallback', ['user_id' => $userId]);
+            }
+        }
+
+        if (!$stateValid) {
             Log::error('Instagram OAuth state mismatch', [
                 'received' => $state,
-                'expected' => $savedState,
+                'cache_found' => !is_null($cached ?? null),
             ]);
             return $this->redirectToFrontendWithResult(
                 success: false,
@@ -120,9 +154,30 @@ class InstagramAuthController extends Controller
             $connectedAccounts = $this->instagramService->getConnectedInstagramAccounts($longLivedToken);
 
             if (empty($connectedAccounts)) {
+                // Fallback: simpan token saja tanpa Instagram ID
+                // Agar user tetap bisa connect dan gunakan fitur lainnya
+                Log::warning('No Instagram Business/Creator account found, saving token only', [
+                    'user_id' => $userId,
+                ]);
+
+                // Simpan sebagai akun "pending" — token tersimpan untuk
+                // digunakan nanti saat akun Instagram sudah terhubung ke Page
+                $socialAccount = SocialAccount::updateOrCreate(
+                    [
+                        'user_id' => $userId,
+                        'platform' => 'instagram',
+                        'instagram_id' => null,
+                    ],
+                    [
+                        'handle' => '@pending_instagram_connection',
+                        'access_token' => $longLivedToken,
+                        'token_expires_at' => $tokenExpiresAt,
+                    ]
+                );
+
                 return $this->redirectToFrontendWithResult(
                     success: false,
-                    message: 'Tidak ditemukan akun Instagram Bisnis/Kreator yang terhubung ke Halaman Facebook Anda. Pastikan akun Instagram Anda sudah diubah ke mode Profesional dan terhubung ke Facebook Page.'
+                    message: 'Token Facebook berhasil disimpan, tetapi tidak ditemukan akun Instagram Profesional yang terhubung ke Halaman Facebook Anda. Pastikan Instagram sudah diubah ke mode Kreator/Bisnis dan terhubung ke Facebook Page di Pengaturan Instagram > Akun > Berbagi ke Aplikasi Lain > Facebook.'
                 );
             }
 
