@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Comment;
 use App\Models\SocialAccount;
 use App\Services\InstagramService;
+use App\Services\GeminiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -12,10 +13,12 @@ use Illuminate\Support\Facades\Log;
 class WebhookController extends Controller
 {
     protected InstagramService $instagramService;
+    protected GeminiService $geminiService;
 
-    public function __construct(InstagramService $instagramService)
+    public function __construct(InstagramService $instagramService, GeminiService $geminiService)
     {
         $this->instagramService = $instagramService;
+        $this->geminiService = $geminiService;
     }
 
     /**
@@ -173,8 +176,8 @@ class WebhookController extends Controller
             return;
         }
 
-        // ── Analisis Sentimen Rule-Based (akan digantikan Gemini di Fase 3) ──
-        $analysis = $this->analyzeComment($text);
+        // ── Analisis Sentimen via Google Gemini AI (Fase 3) ──
+        $analysis = $this->geminiService->analyzeComment($text);
 
         // ── Simpan Komentar ke Database ───────────────────────────────────────
         $comment = Comment::create([
@@ -189,6 +192,7 @@ class WebhookController extends Controller
             'severity'           => $analysis['severity'],
             'is_sarcasm'         => $analysis['is_sarcasm'],
             'action'             => $analysis['action'],
+            'reason'             => $analysis['reason'] ?? null, // Simpan penjelasan moderasi AI
             'is_hidden'          => $analysis['action'] === 'HIDE',
             'timestamp'          => $timestamp,
         ]);

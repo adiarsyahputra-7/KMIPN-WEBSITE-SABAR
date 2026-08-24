@@ -3,19 +3,6 @@
 use App\Http\Controllers\InstagramAuthController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes — SABAR System
-|--------------------------------------------------------------------------
-|
-| Route web.php khusus untuk:
-| 1. Alur OAuth Instagram (redirect & callback) — harus di web.php karena
-|    perlu session Laravel untuk menyimpan state CSRF OAuth.
-| 2. Catch-all untuk React SPA — menangani semua route lain dan menyerahkan
-|    rendering ke React Router.
-|
-*/
-
 // ─── INSTAGRAM OAUTH ROUTES ─────────────────────────────────────────────────
 // Dua route ini HARUS didefinisikan SEBELUM catch-all agar tidak tertimpa.
 

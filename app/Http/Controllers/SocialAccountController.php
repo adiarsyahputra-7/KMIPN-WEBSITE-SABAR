@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Comment;
 use App\Models\SocialAccount;
 use App\Services\InstagramService;
+use App\Services\GeminiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
@@ -13,10 +14,12 @@ use Exception;
 class SocialAccountController extends Controller
 {
     protected InstagramService $instagramService;
+    protected GeminiService $geminiService;
 
-    public function __construct(InstagramService $instagramService)
+    public function __construct(InstagramService $instagramService, GeminiService $geminiService)
     {
         $this->instagramService = $instagramService;
+        $this->geminiService = $geminiService;
     }
 
     public function index()
@@ -129,8 +132,8 @@ class SocialAccountController extends Controller
                             continue;
                         }
 
-                        // Analisis sentimen & toksisitas
-                        $analysis = $this->analyzeText($text);
+                        // Analisis sentimen via Google Gemini AI (Fase 3)
+                        $analysis = $this->geminiService->analyzeComment($text);
 
                         // Simpan ke database
                         $newComment = Comment::create([
@@ -145,6 +148,7 @@ class SocialAccountController extends Controller
                             'severity'            => $analysis['severity'],
                             'is_sarcasm'          => $analysis['is_sarcasm'],
                             'action'              => $analysis['action'],
+                            'reason'              => $analysis['reason'] ?? null,
                             'is_hidden'           => $analysis['action'] === 'HIDE',
                             'timestamp'           => $timestamp,
                         ]);
@@ -203,7 +207,7 @@ class SocialAccountController extends Controller
 
         $addedCount = 0;
         foreach ($simulatedComments as $sim) {
-            $analysis = $this->analyzeText($sim['text']);
+            $analysis = $this->geminiService->analyzeComment($sim['text']);
             Comment::create([
                 'social_account_id'   => $socialAccount->id,
                 'platform_comment_id' => 'sim_' . time() . '_' . rand(100, 999),
@@ -216,6 +220,7 @@ class SocialAccountController extends Controller
                 'severity'            => $analysis['severity'],
                 'is_sarcasm'          => $analysis['is_sarcasm'],
                 'action'              => $analysis['action'],
+                'reason'              => $analysis['reason'] ?? null,
                 'is_hidden'           => $analysis['action'] === 'HIDE',
                 'timestamp'           => now(),
             ]);

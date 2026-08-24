@@ -21,6 +21,7 @@ class Comment extends Model
         'severity',
         'is_sarcasm',
         'action',
+        'reason', // ← FIX: Simpan penjelasan analisis AI
         'is_hidden',
         'timestamp',
     ];

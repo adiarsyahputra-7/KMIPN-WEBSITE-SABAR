@@ -143,6 +143,18 @@ export default function CommentTable({ comments, onToggleHide, onResetMock }) {
                           Post: {cmt.postTitle}
                         </p>
                       )}
+                      {cmt.reason && (
+                        <div className="pt-1">
+                          <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[10px] font-medium border transition-all ${
+                            cmt.is_hidden
+                              ? 'bg-rose-50/70 text-rose-700 border-rose-100/60 shadow-sm shadow-rose-500/5'
+                              : 'bg-slate-50/80 text-slate-600 border-slate-200/60'
+                          }`}>
+                            <span className="font-semibold text-slate-400">🤖 Analisis SABAR:</span>
+                            <span>{cmt.reason}</span>
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </td>
 
