@@ -59,6 +59,7 @@ class CommentController extends Controller
             'severity' => 'nullable|integer',
             'is_sarcasm' => 'nullable|boolean',
             'action' => 'nullable|string',
+            'reason' => 'nullable|string',
             'is_hidden' => 'nullable|boolean',
         ]);
 
@@ -92,7 +93,8 @@ class CommentController extends Controller
             'toxicity_score' => $toxicity,
             'severity' => $validated['severity'] ?? ($toxicity >= 0.5 ? min(10, round($toxicity * 10)) : 1),
             'is_sarcasm' => $validated['is_sarcasm'] ?? false,
-            'action' => $isHidden ? 'HIDE' : 'ALLOW',
+            'action' => $validated['action'] ?? ($isHidden ? 'HIDE' : 'ALLOW'),
+            'reason' => $validated['reason'] ?? null,
             'is_hidden' => $isHidden,
             'timestamp' => now(),
         ]);
@@ -101,6 +103,20 @@ class CommentController extends Controller
             'message' => 'Komentar berhasil disimpan',
             'comment' => $comment->load('socialAccount'),
         ], 201);
+    }
+
+    /**
+     * Uji Coba Langsung: Menganalisis teks menggunakan Google Gemini AI secara real-time.
+     */
+    public function analyze(Request $request, \App\Services\GeminiService $geminiService)
+    {
+        $validated = $request->validate([
+            'text' => 'required|string|max:1000',
+        ]);
+
+        $result = $geminiService->analyzeComment($validated['text']);
+
+        return response()->json($result);
     }
 
     /**

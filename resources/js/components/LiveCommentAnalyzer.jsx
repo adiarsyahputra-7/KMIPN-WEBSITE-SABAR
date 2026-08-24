@@ -16,54 +16,51 @@ export default function LiveCommentAnalyzer({ onAddComment }) {
   const [saving, setSaving] = useState(false);
   const [analysisResult, setAnalysisResult] = useState(null);
 
-  // ─── ANALISIS LOKAL (Rule-based, akan diganti Gemini API di Fase 3) ────────
-  const analyzeTextLocal = (text) => {
-    const lower = text.toLowerCase();
-
-    const sarcasmPatterns = ['keren tapi', 'bagus banget sampai', 'kayak siput', 'hebat banget ya', 'sampai rusak', 'mantap banget ya', 'bagus sih tapi'];
-    const isSarcasm = sarcasmPatterns.some(p => lower.includes(p));
-
-    const toxicPatterns = ['sampah', 'bego', 'jijik', 'caper', 'mati', 'mundur aja', 'gak guna', 'gak pantes', 'anjing', 'bangsat', 'tolol', 'idiot', 'bodoh', 'goblok'];
-    const hasToxic = toxicPatterns.some(p => lower.includes(p));
-
-    const positivePatterns = ['bagus', 'terima kasih', 'suka banget', 'menginspirasi', 'keren parah', 'sukses terus', 'ramah', 'rapi', 'mantap', 'luar biasa', 'semangat', 'keren'];
-    const hasPositive = positivePatterns.some(p => lower.includes(p));
-
-    let sentiment = 'NETRAL';
-    let toxicity_score = 0.05;
-    let severity = 1;
-    let action = 'ALLOW';
-
-    if (hasToxic || isSarcasm) {
-      sentiment = 'NEGATIF';
-      toxicity_score = isSarcasm ? 0.82 : 0.92;
-      severity = isSarcasm ? 8 : 9;
-      action = 'HIDE';
-    } else if (hasPositive) {
-      sentiment = 'POSITIF';
-      toxicity_score = 0.02;
-      severity = 1;
-      action = 'ALLOW';
-    } else {
-      toxicity_score = 0.12;
-      severity = 2;
-    }
-
-    return { sentiment, toxicity_score, severity, is_sarcasm: isSarcasm, action, is_hidden: action === 'HIDE' };
-  };
-
-  // ─── ANALISIS TEKS ─────────────────────────────────────────────────────────
-  const handleAnalyze = (e) => {
+  // ─── ANALISIS TEKS VIA GEMINI AI (FASE 3) ──────────────────────────────────
+  const handleAnalyze = async (e) => {
     e?.preventDefault();
-    if (!inputText.trim()) return;
+    if (!inputText.trim() || analyzing) return;
 
     setAnalyzing(true);
-    // Simulasikan latency model NLP (250ms)
-    setTimeout(() => {
-      const result = analyzeTextLocal(inputText);
-      setAnalysisResult(result);
+    setAnalysisResult(null);
+
+    try {
+      // Panggil endpoint backend yang terhubung langsung dengan GeminiService
+      const { data } = await api.post('/nlp/analyze', {
+        text: inputText.trim(),
+      });
+
+      setAnalysisResult({
+        sentiment: data.sentiment,
+        toxicity_score: data.toxicity_score,
+        severity: data.severity,
+        is_sarcasm: data.is_sarcasm,
+        action: data.action,
+        reason: data.reason,
+        is_hidden: data.action === 'HIDE',
+      });
+    } catch (err) {
+      console.error('Failed to analyze with Gemini API:', err);
+      // Fallback lokal jika ada gangguan koneksi
+      const lower = inputText.toLowerCase();
+      const isSarcasm = ['keren tapi', 'bagus banget sampai', 'kayak siput', 'hebat banget ya'].some(p => lower.includes(p));
+      const hasToxic = ['sampah', 'bego', 'jijik', 'caper', 'mati', 'anjing', 'bangsat', 'babi', 'tolol', 'idiot', 'bodoh', 'goblok'].some(p => lower.includes(p));
+      
+      const sentiment = (hasToxic || isSarcasm) ? 'NEGATIF' : 'NETRAL';
+      const action = (hasToxic || isSarcasm) ? 'HIDE' : 'ALLOW';
+      
+      setAnalysisResult({
+        sentiment,
+        toxicity_score: (hasToxic || isSarcasm) ? 0.92 : 0.12,
+        severity: (hasToxic || isSarcasm) ? 8 : 2,
+        is_sarcasm: isSarcasm,
+        action,
+        reason: 'Fallback lokal: Analisis darurat saat jaringan offline.',
+        is_hidden: action === 'HIDE',
+      });
+    } finally {
       setAnalyzing(false);
-    }, 250);
+    }
   };
 
   // ─── APPLY KE FEED: simpan ke database lalu tampilkan ─────────────────────
@@ -80,6 +77,7 @@ export default function LiveCommentAnalyzer({ onAddComment }) {
         severity: analysisResult.severity,
         is_sarcasm: analysisResult.is_sarcasm,
         action: analysisResult.action,
+        reason: analysisResult.reason,
         is_hidden: analysisResult.is_hidden,
       });
 
@@ -124,8 +122,9 @@ export default function LiveCommentAnalyzer({ onAddComment }) {
             Analisis sentimen, sarkasme, dan skor toksisitas secara seketika
           </p>
         </div>
-        <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
-          Model: Rule-Based → Gemini AI (Fase 3)
+        <span className="text-[10px] font-bold text-teal-700 bg-teal-50 border border-teal-200/60 px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
+          <Sparkles className="w-3 h-3 text-teal-600 animate-pulse" />
+          Google Gemini 3.6 Flash (AI Aktif)
         </span>
       </div>
 
@@ -137,7 +136,7 @@ export default function LiveCommentAnalyzer({ onAddComment }) {
             key={i}
             onClick={() => {
               setInputText(preset.text);
-              setAnalysisResult(null);
+              if (analysisResult) setAnalysisResult(null);
             }}
             className="px-2.5 py-1 text-[11px] font-medium rounded-lg bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all"
           >
@@ -155,12 +154,12 @@ export default function LiveCommentAnalyzer({ onAddComment }) {
             if (analysisResult) setAnalysisResult(null);
           }}
           rows={2}
-          placeholder="Masukkan contoh komentar Bahasa Indonesia (baku, gaul/slang, sindiran)..."
+          placeholder="Masukkan contoh komentar Bahasa Indonesia (baku, gaul/slang, kata tersamar angka/bintang, sindiran)..."
           className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 transition-all resize-none"
         />
         <div className="flex items-center justify-between">
           <p className="text-[11px] text-slate-400">
-            * Mendeteksi ambiguitas dan pola kalimat sarkasme Indonesia.
+            * Menganalisis kata slang, leet speak (angka/simbol), dan pola sarkasme secara kontekstual.
           </p>
           <button
             type="submit"
@@ -168,10 +167,10 @@ export default function LiveCommentAnalyzer({ onAddComment }) {
             className="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 disabled:opacity-40 transition-all flex items-center gap-1.5 shadow-sm"
           >
             {analyzing
-              ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ? <Loader2 className="w-3.5 h-3.5 animate-spin text-teal-400" />
               : <Send className="w-3.5 h-3.5" />
             }
-            Analisis Teks
+            {analyzing ? 'Menganalisis...' : 'Analisis Teks'}
           </button>
         </div>
       </form>
@@ -180,9 +179,9 @@ export default function LiveCommentAnalyzer({ onAddComment }) {
       {analysisResult && (
         <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3 animate-fadeIn">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-700">Hasil Analisis Model:</span>
+            <span className="text-xs font-bold text-slate-700">Hasil Analisis Gemini AI:</span>
             <div className="flex items-center gap-2">
-              <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${sentimentColor[analysisResult.sentiment]}`}>
+              <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${sentimentColor[analysisResult.sentiment] || 'bg-slate-200 text-slate-700'}`}>
                 {analysisResult.sentiment}{analysisResult.is_sarcasm ? ' · Sarkasme' : ''}
               </span>
               <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold flex items-center gap-1 ${
@@ -193,7 +192,7 @@ export default function LiveCommentAnalyzer({ onAddComment }) {
                 {analysisResult.action === 'HIDE'
                   ? <EyeOff className="w-3 h-3" />
                   : <Eye className="w-3 h-3" />
-                }
+              }
                 {analysisResult.action === 'HIDE' ? 'AUTO-HIDE' : 'ALLOWED'}
               </span>
             </div>
@@ -214,6 +213,17 @@ export default function LiveCommentAnalyzer({ onAddComment }) {
             </div>
           </div>
 
+          {/* AI Reason Card */}
+          {analysisResult.reason && (
+            <div className="p-2.5 rounded-lg bg-white border border-slate-200/80 flex items-start gap-2">
+              <span className="text-xs">🤖</span>
+              <div className="text-[11px] leading-tight">
+                <span className="font-bold text-slate-700">Penjelasan AI: </span>
+                <span className="text-slate-600">{analysisResult.reason}</span>
+              </div>
+            </div>
+          )}
+
           <div className="pt-2 border-t border-slate-200 flex justify-end">
             <button
               onClick={handleApplyToFeed}
@@ -232,3 +242,4 @@ export default function LiveCommentAnalyzer({ onAddComment }) {
     </div>
   );
 }
+

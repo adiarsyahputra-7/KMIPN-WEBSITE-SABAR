@@ -31,6 +31,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/comments', [CommentController::class, 'store']);
     Route::patch('/comments/{id}/toggle-hide', [CommentController::class, 'toggleHide']);
     Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
+    Route::post('/nlp/analyze', [CommentController::class, 'analyze']); // ← FIX: Uji Coba Gemini AI Realtime
 
     Route::get('/social-accounts', [SocialAccountController::class, 'index']);
     Route::post('/social-accounts', [SocialAccountController::class, 'store']);
