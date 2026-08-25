@@ -136,6 +136,23 @@ export default function Dashboard({ user, onLogout }) {
     }
   }, [loadDashboardData]);
 
+  // ─── HANDLER: Hapus komentar dari sistem SABAR ────────────────────────────
+  const handleDeleteComment = useCallback(async (id) => {
+    // Optimistic update
+    setComments(prev => prev.filter(c => c.id !== id));
+
+    if (typeof id === 'number' || (typeof id === 'string' && !id.includes('mock') && !id.includes('batch') && !id.includes('cmt-'))) {
+      try {
+        await api.delete(`/comments/${id}`);
+        const { data } = await api.get('/dashboard/stats');
+        setApiStats(data);
+      } catch (err) {
+        console.error('Failed to delete comment on server:', err);
+        loadDashboardData();
+      }
+    }
+  }, [loadDashboardData]);
+
   // ─── HANDLER: Sinkronisasi Komentar Instagram (Live API / Simulasi) ────────
   const handleSyncLiveFeed = useCallback(async () => {
     try {
@@ -251,6 +268,7 @@ export default function Dashboard({ user, onLogout }) {
           <CommentTable
             comments={comments}
             onToggleHide={handleToggleHide}
+            onDeleteComment={handleDeleteComment}
             loading={loadingComments}
           />
 

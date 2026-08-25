@@ -6,10 +6,11 @@ import {
   RefreshCw,
   Filter,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Trash2
 } from 'lucide-react';
 
-export default function CommentTable({ comments, onToggleHide, onResetMock }) {
+export default function CommentTable({ comments, onToggleHide, onDeleteComment, onResetMock }) {
   const [filter, setFilter] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -200,16 +201,29 @@ export default function CommentTable({ comments, onToggleHide, onResetMock }) {
 
                   {/* Actions */}
                   <td className="py-3.5 px-4 text-right whitespace-nowrap">
-                    <button
-                      onClick={() => onToggleHide(cmt.id)}
-                      className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-                        cmt.is_hidden
-                          ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200'
-                          : 'bg-slate-50 hover:bg-rose-50 text-slate-600 hover:text-rose-700 border border-slate-200'
-                      }`}
-                    >
-                      {cmt.is_hidden ? "Tampilkan" : "Sembunyikan"}
-                    </button>
+                    <div className="flex items-center justify-end gap-1.5">
+                      <button
+                        onClick={() => onToggleHide(cmt.id)}
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+                          cmt.is_hidden
+                            ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200'
+                            : 'bg-slate-50 hover:bg-rose-50 text-slate-600 hover:text-rose-700 border border-slate-200'
+                        }`}
+                      >
+                        {cmt.is_hidden ? "Tampilkan" : "Sembunyikan"}
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (window.confirm(`Hapus komentar dari ${cmt.author} di sistem SABAR?`)) {
+                            onDeleteComment && onDeleteComment(cmt.id);
+                          }
+                        }}
+                        title="Hapus komentar dari sistem SABAR"
+                        className="p-1.5 rounded-lg bg-slate-50 hover:bg-rose-50 text-slate-400 hover:text-rose-600 border border-slate-200 transition-all"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))

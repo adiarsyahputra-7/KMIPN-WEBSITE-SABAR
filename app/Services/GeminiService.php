@@ -44,7 +44,8 @@ class GeminiService
                 'Content-Type' => 'application/json',
                 'x-goog-api-key' => $this->apiKey,
             ])
-            ->timeout(12) // Batas waktu maksimal 12 detik agar tidak menggantung lama
+            ->timeout(45) // Batas waktu longgar 45 detik untuk memastikan AI berhasil menganalisis
+            ->retry(3, 1000) // Mencoba ulang otomatis hingga 3 kali jika ada gangguan koneksi sementara
             ->post($this->apiUrl, [
                 'contents' => [
                     [
