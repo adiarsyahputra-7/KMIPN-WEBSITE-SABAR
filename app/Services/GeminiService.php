@@ -15,7 +15,7 @@ class GeminiService
     public function __construct()
     {
         $this->apiKey = config('services.gemini.api_key');
-        $this->model = config('services.gemini.model', 'gemini-1.5-flash');
+        $this->model = config('services.gemini.model', 'gemini-3.6-flash');
         $this->apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/{$this->model}:generateContent";
     }
 
@@ -31,16 +31,21 @@ class GeminiService
         // ── 1. Jika API Key tidak diset, gunakan Fallback ────────────────────
         if (empty($this->apiKey)) {
             Log::warning('Gemini API: GEMINI_API_KEY is empty. Falling back to rule-based analysis.');
-            return $this->fallbackAnalysis($text, 'API Key kosong (mode fallback)');
+            return $this->fallbackAnalysis($text, 'API Key belum dikonfigurasi');
         }
 
         try {
-            // ── 2. Request ke Google Gemini API dengan JSON Mode & Schema ────────
+            // ── 2. Request ke Google Gemini API dengan Header Aman & Timeout ──────
             $systemInstruction = $this->getSystemInstruction();
 
+            // Mengirim API Key via header 'x-goog-api-key' untuk keamanan
+            // agar API Key tidak terekspos di URL query params maupun log cURL.
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
-            ])->post("{$this->apiUrl}?key={$this->apiKey}", [
+                'x-goog-api-key' => $this->apiKey,
+            ])
+            ->timeout(12) // Batas waktu maksimal 12 detik agar tidak menggantung lama
+            ->post($this->apiUrl, [
                 'contents' => [
                     [
                         'role' => 'user',
@@ -89,9 +94,9 @@ class GeminiService
             if ($response->failed()) {
                 Log::error('Gemini API request failed', [
                     'status' => $response->status(),
-                    'error' => $response->json(),
+                    'error'  => $response->json(),
                 ]);
-                return $this->fallbackAnalysis($text, 'Koneksi API Gagal');
+                return $this->fallbackAnalysis($text, 'Layanan API tidak menanggapi (' . $response->status() . ')');
             }
 
             // ── 4. Parse output JSON dari Gemini ────────────────────────────────
@@ -120,8 +125,15 @@ class GeminiService
             ];
 
         } catch (Exception $e) {
+            // Log detail error ke file laravel.log (tanpa membocorkan API key ke UI)
             Log::error('Gemini Service Exception: ' . $e->getMessage());
-            return $this->fallbackAnalysis($text, 'Exception: ' . $e->getMessage());
+
+            // Tentukan pesan ramah pengguna untuk UI
+            $userFriendlyReason = str_contains($e->getMessage(), 'timed out') || str_contains($e->getMessage(), 'cURL error 28')
+                ? 'Waktu koneksi API habis (Timeout)'
+                : 'Koneksi jaringan terputus';
+
+            return $this->fallbackAnalysis($text, $userFriendlyReason);
         }
     }
 
@@ -187,7 +199,7 @@ class GeminiService
                 'severity'       => $isSarcasm ? 8 : 9,
                 'is_sarcasm'     => $isSarcasm,
                 'action'         => 'HIDE',
-                'reason'         => "Rule-based: Terdeteksi kata kasar/sarkasme. ({$fallbackReason})",
+                'reason'         => "Fallback (Rule-Based): Terdeteksi kata kasar/sarkasme. [{$fallbackReason}]",
             ];
         }
 
@@ -198,7 +210,7 @@ class GeminiService
                 'severity'       => 1,
                 'is_sarcasm'     => false,
                 'action'         => 'ALLOW',
-                'reason' => "Rule-based: Komentar positif. ({$fallbackReason})",
+                'reason'         => "Fallback (Rule-Based): Komentar positif. [{$fallbackReason}]",
             ];
         }
 
@@ -208,7 +220,7 @@ class GeminiService
             'severity'       => 2,
             'is_sarcasm'     => false,
             'action'         => 'ALLOW',
-            'reason'         => "Rule-based: Komentar netral. ({$fallbackReason})",
+            'reason'         => "Fallback (Rule-Based): Komentar netral. [{$fallbackReason}]",
         ];
     }
 }
