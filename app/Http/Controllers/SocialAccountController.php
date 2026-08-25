@@ -107,20 +107,31 @@ class SocialAccountController extends Controller
                     Log::warning('Sync profile details failed: ' . $e->getMessage());
                 }
 
-                // 2. Ambil postingan terbaru (5 postingan)
-                $mediaList = $this->instagramService->getUserMedia($socialAccount->instagram_id, $accessToken, 5);
+                // 2. Ambil postingan terbaru (10 postingan)
+                $mediaList = $this->instagramService->getUserMedia($socialAccount->instagram_id, $accessToken, 10);
 
                 $newCommentsCount = 0;
                 $hiddenCommentsCount = 0;
 
-                // 3. Loop setiap postingan dan ambil komentarnya
+                // 3. Loop setiap postingan dan ambil komentarnya (termasuk balasan komentar/replies)
                 foreach ($mediaList as $media) {
                     $mediaId = $media['id'];
                     $postCaption = $media['caption'] ?? ('Postingan Instagram #' . substr($mediaId, -6));
 
-                    $commentsData = $this->instagramService->getMediaComments($mediaId, $accessToken, 25);
+                    $rawComments = $this->instagramService->getMediaComments($mediaId, $accessToken, 50);
 
-                    foreach ($commentsData as $c) {
+                    // Flatten komentar utama DAN balasan (replies) agar balasan tidak terlewati
+                    $allComments = [];
+                    foreach ($rawComments as $c) {
+                        $allComments[] = $c;
+                        if (!empty($c['replies']['data']) && is_array($c['replies']['data'])) {
+                            foreach ($c['replies']['data'] as $reply) {
+                                $allComments[] = $reply;
+                            }
+                        }
+                    }
+
+                    foreach ($allComments as $c) {
                         $platformCommentId = $c['id'];
                         $text = $c['text'] ?? '';
                         $username = $c['username'] ?? 'instagram_user';

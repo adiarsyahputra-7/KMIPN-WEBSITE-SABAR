@@ -158,7 +158,13 @@ class CommentController extends Controller
     }
 
     /**
-     * Hapus komentar dan sinkronkan penghapusan ke Instagram jika ada token.
+     * Hapus komentar dari database lokal SABAR saja.
+     *
+     * Jika komentar tersebut sebelumnya di-HIDE oleh SABAR di Instagram,
+     * sistem akan UN-HIDE terlebih dahulu agar komentar kembali terlihat
+     * dan bisa ditarik ulang melalui "Tarik Komentar Terbaru".
+     *
+     * Komentar di Instagram TIDAK PERNAH dihapus permanen oleh tombol ini.
      */
     public function destroy(Request $request, $id)
     {
@@ -169,18 +175,34 @@ class CommentController extends Controller
         }
 
         $socialAccount = $comment->socialAccount;
-        $accessToken = $socialAccount->getEffectiveAccessToken();
+        $accessToken   = $socialAccount->getEffectiveAccessToken();
+        $platformId    = $comment->platform_comment_id;
+        $isRealComment = $platformId && !str_starts_with($platformId, 'sim_') && !str_starts_with($platformId, 'custom_');
 
-        if ($accessToken && $comment->platform_comment_id && !str_starts_with($comment->platform_comment_id, 'sim_') && !str_starts_with($comment->platform_comment_id, 'custom_')) {
+        // Jika komentar ini sebelumnya di-HIDE oleh SABAR di Instagram,
+        // un-hide agar komentar kembali tampil dan bisa di-pull ulang.
+        if ($accessToken && $isRealComment && $comment->is_hidden) {
             try {
-                $this->instagramService->deleteComment($comment->platform_comment_id, $accessToken);
-                Log::info('Comment deleted on Instagram', ['comment_id' => $comment->platform_comment_id]);
+                $this->instagramService->hideComment($platformId, $accessToken, false);
+                Log::info('Comment un-hidden on Instagram before SABAR delete', [
+                    'platform_comment_id' => $platformId,
+                    'author'              => $comment->author,
+                ]);
             } catch (Exception $e) {
-                Log::warning('Failed to delete comment on Instagram: ' . $e->getMessage());
+                // Lanjutkan penghapusan lokal walau un-hide gagal
+                Log::warning('Failed to un-hide comment on Instagram: ' . $e->getMessage());
             }
         }
 
+        // Hapus dari database SABAR lokal — komentar di Instagram tetap ada.
         $comment->delete();
-        return response()->json(['message' => 'Komentar berhasil dihapus']);
+
+        Log::info('Comment removed from SABAR local DB (Instagram comment preserved)', [
+            'sabar_id'           => $id,
+            'platform_comment_id'=> $platformId,
+            'author'             => $comment->author,
+        ]);
+
+        return response()->json(['message' => 'Komentar berhasil dihapus dari sistem SABAR']);
     }
 }
