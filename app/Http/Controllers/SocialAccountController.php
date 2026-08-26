@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Comment;
 use App\Models\SocialAccount;
 use App\Services\InstagramService;
+use App\Services\YouTubeService;
 use App\Services\GeminiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -14,12 +15,17 @@ use Exception;
 class SocialAccountController extends Controller
 {
     protected InstagramService $instagramService;
+    protected YouTubeService $youtubeService;
     protected GeminiService $geminiService;
 
-    public function __construct(InstagramService $instagramService, GeminiService $geminiService)
-    {
+    public function __construct(
+        InstagramService $instagramService,
+        YouTubeService $youtubeService,
+        GeminiService $geminiService
+    ) {
         $this->instagramService = $instagramService;
-        $this->geminiService = $geminiService;
+        $this->youtubeService   = $youtubeService;
+        $this->geminiService    = $geminiService;
     }
 
     public function index()
@@ -91,6 +97,149 @@ class SocialAccountController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
+        // ── Routing berdasarkan platform ──────────────────────────────────────
+        if ($socialAccount->platform === 'youtube') {
+            return $this->syncYouTube($socialAccount);
+        }
+
+        // Default: Instagram sync (logika lama dipertahankan)
+        return $this->syncInstagram($socialAccount);
+    }
+
+    /**
+     * ─── YOUTUBE SYNC: Tarik Komentar dari YouTube Data API v3 ──────────────
+     *
+     * Alur:
+     * 1. Pastikan access token masih valid — jika tidak, refresh otomatis.
+     * 2. Ambil video terbaru dari channel.
+     * 3. Untuk setiap video, ambil komentar dan balasannya.
+     * 4. Analisis setiap komentar menggunakan GeminiService.
+     * 5. Simpan ke database dengan label platform = 'youtube'.
+     * 6. Jika toksik, sembunyikan otomatis di YouTube.
+     */
+    protected function syncYouTube(SocialAccount $socialAccount): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $accessToken = $socialAccount->access_token;
+
+            // ── Refresh access token jika sudah kedaluwarsa ───────────────────
+            if (!$accessToken || ($socialAccount->token_expires_at && $socialAccount->token_expires_at->isPast())) {
+                if (!$socialAccount->youtube_refresh_token) {
+                    return response()->json([
+                        'message' => 'Sesi YouTube telah berakhir dan refresh token tidak ditemukan. Silakan hubungkan ulang akun YouTube Anda.',
+                    ], 401);
+                }
+
+                Log::info('YouTube access token expired, refreshing...', ['account_id' => $socialAccount->id]);
+                $refreshed   = $this->youtubeService->refreshAccessToken($socialAccount->youtube_refresh_token);
+                $accessToken = $refreshed['access_token'];
+                $expiresIn   = $refreshed['expires_in'] ?? 3600;
+
+                $socialAccount->update([
+                    'access_token'     => $accessToken,
+                    'token_expires_at' => Carbon::now()->addSeconds($expiresIn),
+                ]);
+
+                Log::info('YouTube access token refreshed successfully', ['account_id' => $socialAccount->id]);
+            }
+
+            // ── Perbarui detail channel (subscriber, avatar) ──────────────────
+            try {
+                $channelData = $this->youtubeService->getChannelDetails($accessToken);
+                $socialAccount->update([
+                    'followers_count' => $channelData['subscriber_count'],
+                    'avatar_url'      => $channelData['thumbnail_url'],
+                ]);
+            } catch (Exception $e) {
+                Log::warning('YouTube sync: Gagal update profil channel: ' . $e->getMessage());
+            }
+
+            // ── Ambil video terbaru (10 video) ────────────────────────────────
+            $videos = $this->youtubeService->getLatestVideos(
+                $socialAccount->youtube_channel_id,
+                $accessToken,
+                10
+            );
+
+            $newCommentsCount    = 0;
+            $hiddenCommentsCount = 0;
+
+            foreach ($videos as $video) {
+                if (empty($video['video_id'])) continue;
+
+                $videoId    = $video['video_id'];
+                $videoTitle = $video['title'] ?? ('Video YouTube #' . substr($videoId, -6));
+
+                // ── Ambil komentar video (termasuk replies) ───────────────────
+                $rawComments = $this->youtubeService->getVideoComments($videoId, $accessToken, 50);
+
+                foreach ($rawComments as $c) {
+                    $commentId = $c['comment_id'];
+                    $text      = $c['text'] ?? '';
+                    $author    = $c['author'] ?? 'youtube_user';
+                    $timestamp = isset($c['published_at']) ? Carbon::parse($c['published_at']) : now();
+
+                    // Lewati komentar yang sudah pernah disimpan
+                    if (Comment::where('platform_comment_id', $commentId)->exists()) {
+                        continue;
+                    }
+
+                    // Analisis komentar dengan Gemini AI
+                    $analysis = $this->geminiService->analyzeComment($text);
+
+                    // Simpan ke database dengan label platform youtube
+                    $newComment = Comment::create([
+                        'social_account_id'   => $socialAccount->id,
+                        'platform'            => 'youtube',
+                        'platform_comment_id' => $commentId,
+                        'author'              => $author,
+                        'avatar'              => $c['author_photo'] ?? null,
+                        'post_title'          => $videoTitle,
+                        'text'                => $text,
+                        'sentiment'           => $analysis['sentiment'],
+                        'toxicity_score'      => $analysis['toxicity_score'],
+                        'severity'            => $analysis['severity'],
+                        'is_sarcasm'          => $analysis['is_sarcasm'],
+                        'action'              => $analysis['action'],
+                        'reason'              => $analysis['reason'] ?? null,
+                        'is_hidden'           => $analysis['action'] === 'HIDE',
+                        'timestamp'           => $timestamp,
+                    ]);
+
+                    $newCommentsCount++;
+
+                    // Sembunyikan komentar toksik secara otomatis di YouTube
+                    if ($newComment->is_hidden) {
+                        try {
+                            $this->youtubeService->hideComment($commentId, $accessToken);
+                            $hiddenCommentsCount++;
+                        } catch (Exception $e) {
+                            Log::error("YouTube: Gagal sembunyikan komentar {$commentId}: " . $e->getMessage());
+                        }
+                    }
+                }
+            }
+
+            return response()->json([
+                'message'               => "Sinkronisasi YouTube selesai. {$newCommentsCount} komentar baru ditarik, {$hiddenCommentsCount} komentar toksik otomatis disembunyikan.",
+                'new_comments_count'    => $newCommentsCount,
+                'hidden_comments_count' => $hiddenCommentsCount,
+                'account'               => $socialAccount->fresh(),
+            ]);
+        } catch (Exception $e) {
+            Log::error('YouTube Sync Error: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Gagal menarik data dari YouTube API: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * ─── INSTAGRAM SYNC: Tarik Komentar dari Instagram Graph API ────────────
+     * (Logika asli dipindah ke method ini agar bersih dan terpisah)
+     */
+    protected function syncInstagram(SocialAccount $socialAccount): \Illuminate\Http\JsonResponse
+    {
         $accessToken = $socialAccount->getEffectiveAccessToken();
 
         // ── JIKA MEMILIKI ACCESS TOKEN DARI META OAUTH ───────────────────────
@@ -143,12 +292,13 @@ class SocialAccountController extends Controller
                             continue;
                         }
 
-                        // Analisis sentimen via Google Gemini AI (Fase 3)
+                        // Analisis sentimen via Google Gemini AI
                         $analysis = $this->geminiService->analyzeComment($text);
 
-                        // Simpan ke database
+                        // Simpan ke database dengan label platform instagram
                         $newComment = Comment::create([
                             'social_account_id'   => $socialAccount->id,
+                            'platform'            => 'instagram',
                             'platform_comment_id' => $platformCommentId,
                             'author'              => '@' . ltrim($username, '@'),
                             'avatar'              => null,
@@ -192,7 +342,7 @@ class SocialAccountController extends Controller
             }
         }
 
-        // ── JIKA AKUN DEMO / SIMULASI (TANPA OAUTH TOKEN) ────────────────────
+        // ── JIKA AKUN DEMO / SIMULASI (TANPA OAUTH TOKEN) ──────────────────
         $simulatedComments = [
             [
                 'author' => '@andi_pratama99',
@@ -221,6 +371,7 @@ class SocialAccountController extends Controller
             $analysis = $this->geminiService->analyzeComment($sim['text']);
             Comment::create([
                 'social_account_id'   => $socialAccount->id,
+                'platform'            => 'instagram',
                 'platform_comment_id' => 'sim_' . time() . '_' . rand(100, 999),
                 'author'              => $sim['author'],
                 'avatar'              => 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
@@ -239,10 +390,10 @@ class SocialAccountController extends Controller
         }
 
         return response()->json([
-            'message' => "Sinkronisasi simulasi selesai. {$addedCount} komentar baru berhasil diproses.",
-            'new_comments_count' => $addedCount,
+            'message'               => "Sinkronisasi simulasi selesai. {$addedCount} komentar baru berhasil diproses.",
+            'new_comments_count'    => $addedCount,
             'hidden_comments_count' => 2,
-            'account' => $socialAccount,
+            'account'               => $socialAccount,
         ]);
     }
 

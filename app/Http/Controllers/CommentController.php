@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Comment;
 use App\Services\InstagramService;
+use App\Services\YouTubeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Exception;
@@ -11,10 +12,12 @@ use Exception;
 class CommentController extends Controller
 {
     protected InstagramService $instagramService;
+    protected YouTubeService $youtubeService;
 
-    public function __construct(InstagramService $instagramService)
+    public function __construct(InstagramService $instagramService, YouTubeService $youtubeService)
     {
         $this->instagramService = $instagramService;
+        $this->youtubeService   = $youtubeService;
     }
 
     public function index(Request $request)
@@ -26,6 +29,11 @@ class CommentController extends Controller
         // Filter by sentiment
         if ($request->filled('sentiment')) {
             $query->where('sentiment', strtoupper($request->sentiment));
+        }
+
+        // Filter by platform (instagram / youtube)
+        if ($request->filled('platform') && in_array($request->platform, ['instagram', 'youtube'])) {
+            $query->where('platform', $request->platform);
         }
 
         // Filter by hidden status
@@ -135,19 +143,34 @@ class CommentController extends Controller
         $comment->action = $comment->is_hidden ? 'HIDE' : 'ALLOW';
         $comment->save();
 
-        // ── Sinkronkan ke Instagram Graph API secara real-time ───────────────
+        // ── Sinkronkan ke platform asal secara real-time ─────────────────────
         $socialAccount = $comment->socialAccount;
-        $accessToken = $socialAccount->getEffectiveAccessToken();
+        $accessToken   = $socialAccount->getEffectiveAccessToken();
+        $isRealComment = $comment->platform_comment_id
+                      && !str_starts_with($comment->platform_comment_id, 'sim_')
+                      && !str_starts_with($comment->platform_comment_id, 'custom_');
 
-        if ($accessToken && $comment->platform_comment_id && !str_starts_with($comment->platform_comment_id, 'sim_') && !str_starts_with($comment->platform_comment_id, 'custom_')) {
+        if ($accessToken && $isRealComment) {
             try {
-                $this->instagramService->hideComment($comment->platform_comment_id, $accessToken, $comment->is_hidden);
-                Log::info('Comment toggleHide synced to Instagram', [
-                    'comment_id' => $comment->platform_comment_id,
-                    'hidden' => $comment->is_hidden,
-                ]);
+                if ($comment->platform === 'youtube') {
+                    // YouTube hanya bisa hide, tidak bisa un-hide via API
+                    if ($comment->is_hidden) {
+                        $this->youtubeService->hideComment($comment->platform_comment_id, $accessToken);
+                    }
+                    Log::info('Comment toggleHide synced to YouTube', [
+                        'comment_id' => $comment->platform_comment_id,
+                        'hidden'     => $comment->is_hidden,
+                    ]);
+                } else {
+                    // Instagram bisa hide dan un-hide
+                    $this->instagramService->hideComment($comment->platform_comment_id, $accessToken, $comment->is_hidden);
+                    Log::info('Comment toggleHide synced to Instagram', [
+                        'comment_id' => $comment->platform_comment_id,
+                        'hidden'     => $comment->is_hidden,
+                    ]);
+                }
             } catch (Exception $e) {
-                Log::warning('Failed to sync hide status to Instagram: ' . $e->getMessage());
+                Log::warning('Failed to sync hide status to platform: ' . $e->getMessage());
             }
         }
 

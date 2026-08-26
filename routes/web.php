@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\InstagramAuthController;
+use App\Http\Controllers\YouTubeAuthController;
 use Illuminate\Support\Facades\Route;
 
 // ─── INSTAGRAM OAUTH ROUTES ─────────────────────────────────────────────────
@@ -13,6 +14,12 @@ Route::get('/auth/instagram', [InstagramAuthController::class, 'redirect'])
 // Step 2: Callback dari Meta setelah pengguna mengizinkan/menolak akses
 Route::get('/auth/instagram/callback', [InstagramAuthController::class, 'callback'])
     ->name('instagram.auth.callback');
+
+// ─── YOUTUBE OAUTH ROUTES ─────────────────────────────────────────────────────
+Route::get('/auth/youtube', [YouTubeAuthController::class, 'redirect'])
+    ->name('youtube.auth.redirect');
+Route::get('/auth/youtube/callback', [YouTubeAuthController::class, 'callback'])
+    ->name('youtube.auth.callback');
 
 // ─── REACT SPA CATCH-ALL ────────────────────────────────────────────────────
 // Tangkap semua route yang tidak dikenali dan kembalikan ke React untuk

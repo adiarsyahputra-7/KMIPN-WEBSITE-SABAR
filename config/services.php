@@ -45,4 +45,16 @@ return [
         'model' => env('GEMINI_MODEL', 'gemini-1.5-flash'),
     ],
 
+    'youtube' => [
+        'client_id'     => env('YOUTUBE_CLIENT_ID'),
+        'client_secret' => env('YOUTUBE_CLIENT_SECRET'),
+        'redirect_uri'  => env('YOUTUBE_REDIRECT_URI', 'http://localhost:8000/auth/youtube/callback'),
+        'api_url'       => 'https://www.googleapis.com/youtube/v3',
+        'oauth_url'     => 'https://oauth2.googleapis.com',
+        'scope'         => [
+            'https://www.googleapis.com/auth/youtube.readonly',
+            'https://www.googleapis.com/auth/youtube.force-ssl', // diperlukan untuk moderasi komentar
+        ],
+    ],
+
 ];

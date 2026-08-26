@@ -14,9 +14,11 @@ class SocialAccount extends Model
         'platform',
         'handle',
         'instagram_id',
+        'youtube_channel_id',
         'page_id',
         'access_token',
         'page_access_token',
+        'youtube_refresh_token',
         'token_expires_at',
         'followers_count',
         'avatar_url',
@@ -39,11 +41,15 @@ class SocialAccount extends Model
     }
 
     /**
-     * Menentukan access token mana yang harus dipakai untuk request API:
-     * Page Access Token lebih diutamakan karena lebih kuat hak aksesnya.
+     * Menentukan access token mana yang harus dipakai untuk request API.
+     * - Instagram: Page Access Token lebih diutamakan.
+     * - YouTube: access_token (yang akan di-refresh otomatis saat sync).
      */
     public function getEffectiveAccessToken(): ?string
     {
+        if ($this->platform === 'youtube') {
+            return $this->access_token;
+        }
         return $this->page_access_token ?? $this->access_token;
     }
 

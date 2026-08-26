@@ -11,6 +11,7 @@ class Comment extends Model
 
     protected $fillable = [
         'social_account_id',
+        'platform',
         'platform_comment_id',
         'author',
         'avatar',
@@ -21,7 +22,7 @@ class Comment extends Model
         'severity',
         'is_sarcasm',
         'action',
-        'reason', // ← FIX: Simpan penjelasan analisis AI
+        'reason',
         'is_hidden',
         'timestamp',
     ];
@@ -64,5 +65,15 @@ class Comment extends Model
     public function scopeNegatif($query)
     {
         return $query->where('sentiment', 'NEGATIF');
+    }
+
+    /**
+     * Filter komentar berdasarkan platform asal.
+     * Penggunaan: Comment::platform('youtube')->get()
+     *             Comment::platform('instagram')->toxic()->get()
+     */
+    public function scopePlatform($query, string $platform)
+    {
+        return $query->where('platform', $platform);
     }
 }
