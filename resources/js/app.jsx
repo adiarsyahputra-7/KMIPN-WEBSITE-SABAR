@@ -15,17 +15,21 @@ function App() {
   const [oauthToast, setOauthToast] = useState(null);
 
   // ─── BACA QUERY PARAMS OAUTH DARI URL ──────────────────────────────────────
-  // InstagramAuthController::redirectToFrontendWithResult() mengirim:
-  //   /?instagram_connected=1&message=Berhasil menghubungkan...
-  //   /?instagram_connected=0&message=Koneksi dibatalkan...
+  // InstagramAuthController / YouTubeAuthController mengirim:
+  //   /?instagram_connected=1&message=... atau /?youtube_connected=1&message=...
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const connected = params.get('instagram_connected');
+    const igConnected = params.get('instagram_connected');
+    const ytConnected = params.get('youtube_connected');
     const message = params.get('message');
 
-    if (connected !== null && message) {
+    if ((igConnected !== null || ytConnected !== null) && message) {
+      const isYoutube = ytConnected !== null;
+      const isConnected = isYoutube ? ytConnected === '1' : igConnected === '1';
+
       setOauthToast({
-        success: connected === '1',
+        success: isConnected,
+        platform: isYoutube ? 'youtube' : 'instagram',
         message: decodeURIComponent(message),
       });
 
@@ -107,10 +111,11 @@ function App() {
         oauthSuccess={oauthToast?.success}
       />
 
-      {/* OAuth Toast Notification — muncul setelah kembali dari alur Instagram OAuth */}
+      {/* OAuth Toast Notification — muncul setelah kembali dari alur OAuth Instagram / YouTube */}
       {oauthToast && (
         <OAuthToast
           success={oauthToast.success}
+          platform={oauthToast.platform || 'instagram'}
           message={oauthToast.message}
           onClose={() => setOauthToast(null)}
         />
