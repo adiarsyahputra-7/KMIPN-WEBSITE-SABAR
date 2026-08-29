@@ -420,7 +420,8 @@ export default function SocialAccountModal({
 
                       {/* Action Buttons */}
                       <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                        {acc.token_expires_at && (
+                        {/* Refresh Token — hanya untuk Instagram (Meta Long-Lived Token) */}
+                        {acc.token_expires_at && acc.platform === 'instagram' && (
                           <button
                             onClick={(e) => handleRefreshToken(acc.id, e)}
                             disabled={isRefreshing}
