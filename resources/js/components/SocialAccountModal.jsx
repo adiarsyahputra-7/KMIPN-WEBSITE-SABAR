@@ -9,6 +9,7 @@ import {
   Link2,
   Clock,
   AlertTriangle,
+  Plus
 } from 'lucide-react';
 import api from '../api';
 
@@ -25,8 +26,8 @@ const YoutubeIcon = ({ className = 'w-4 h-4' }) => (
   </svg>
 );
 
-const TikTokIcon = () => (
-  <svg className="w-4 h-4 fill-current text-slate-800" viewBox="0 0 24 24">
+const TikTokIcon = ({ className = 'w-4 h-4' }) => (
+  <svg className={`fill-current ${className}`} viewBox="0 0 24 24">
     <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.29 6.29 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.19 8.19 0 004.79 1.53V6.75a4.85 4.85 0 01-1.02-.06z"/>
   </svg>
 );
@@ -34,13 +35,13 @@ const TikTokIcon = () => (
 const PLATFORM_ICONS = {
   instagram: <InstagramIcon className="w-4 h-4 text-rose-500" />,
   youtube: <YoutubeIcon className="w-4 h-4 text-red-600" />,
-  tiktok: <TikTokIcon />,
+  tiktok: <TikTokIcon className="w-4 h-4 text-cyan-400" />,
 };
 
 const PLATFORM_COLORS = {
   instagram: 'from-purple-500 via-rose-500 to-orange-400',
   youtube: 'from-red-500 to-red-700',
-  tiktok: 'from-slate-900 to-slate-700',
+  tiktok: 'from-slate-900 via-slate-800 to-slate-900',
 };
 
 // ─── HELPER: Format tanggal expiry token ───────────────────────────────────────
@@ -71,10 +72,10 @@ export default function SocialAccountModal({
   const [syncing, setSyncing] = React.useState(false);
   const [refreshingTokenId, setRefreshingTokenId] = React.useState(null);
   const [error, setError] = React.useState('');
-  const [demoMode, setDemoMode] = React.useState(false);
-  const [demoPlatform, setDemoPlatform] = React.useState('instagram');
-  const [demoHandle, setDemoHandle] = React.useState('');
-  const [demoLoading, setDemoLoading] = React.useState(false);
+
+  // State untuk TikTok Handle Connect
+  const [tiktokHandleInput, setTiktokHandleInput] = React.useState('');
+  const [tiktokConnecting, setTiktokConnecting] = React.useState(false);
 
   // ─── LOAD AKUN DARI DATABASE ───────────────────────────────────────────────
   const fetchAccounts = React.useCallback(async () => {
@@ -117,6 +118,35 @@ export default function SocialAccountModal({
     window.location.href = oauthUrl;
   };
 
+  // ─── HANDLER: Hubungkan Akun TikTok via Handle ────────────────────────────
+  const handleConnectTikTok = async () => {
+    if (!tiktokHandleInput.trim()) return;
+    setTiktokConnecting(true);
+    setError('');
+
+    try {
+      const handle = tiktokHandleInput.trim().startsWith('@')
+        ? tiktokHandleInput.trim()
+        : '@' + tiktokHandleInput.trim();
+
+      const { data } = await api.post('/social-accounts', {
+        platform: 'tiktok',
+        handle: handle,
+      });
+
+      setTiktokHandleInput('');
+      await fetchAccounts();
+      if (data.account) {
+        onSelectAccount(data.account);
+      }
+      if (onAccountsChanged) onAccountsChanged();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Gagal menambahkan akun TikTok. Periksa koneksi Anda.');
+    } finally {
+      setTiktokConnecting(false);
+    }
+  };
+
   // ─── HANDLER: Refresh Token ────────────────────────────────────────────────
   const handleRefreshToken = async (accountId, e) => {
     e.stopPropagation();
@@ -149,30 +179,7 @@ export default function SocialAccountModal({
     }
   };
 
-  // ─── HANDLER: Demo Mode — sambungkan akun secara manual tanpa OAuth ──────
-  const handleDemoConnect = async () => {
-    if (!demoHandle.trim()) return;
-    setDemoLoading(true);
-    setError('');
-    try {
-      const handle = demoHandle.trim().startsWith('@') ? demoHandle.trim() : '@' + demoHandle.trim();
-      await api.post('/social-accounts', {
-        platform: demoPlatform,
-        handle: handle,
-        followers_count: Math.floor(Math.random() * 45000) + 5000,
-      });
-      setDemoHandle('');
-      setDemoMode(false);
-      await fetchAccounts();
-      if (onAccountsChanged) onAccountsChanged();
-    } catch (err) {
-      setError(err.response?.data?.message || 'Gagal menambahkan akun demo.');
-    } finally {
-      setDemoLoading(false);
-    }
-  };
-
-  // ─── HANDLER: Sinkronisasi Webhook ────────────────────────────────────────
+  // ─── HANDLER: Sinkronisasi Komentar ──────────────────────────────────────
   const handleSync = async () => {
     setSyncing(true);
     try {
@@ -200,7 +207,7 @@ export default function SocialAccountModal({
                 Integrasi Akun Media Sosial
               </h3>
               <p className="text-xs text-slate-500">
-                Hubungkan platform Instagram & YouTube ke sistem SABAR
+                Hubungkan platform Instagram, YouTube & TikTok ke sistem SABAR
               </p>
             </div>
           </div>
@@ -266,47 +273,47 @@ export default function SocialAccountModal({
             </div>
           </div>
 
-          {/* ── Mode Demo Manual ───────────────────────────────────────────── */}
-          <div className="rounded-2xl border border-slate-100 bg-slate-50/60 p-3">
-            <button
-              onClick={() => { setDemoMode(!demoMode); setError(''); }}
-              className="w-full flex items-center justify-between text-[11px] text-slate-500 hover:text-slate-800 transition-colors"
-            >
-              <span className="font-semibold">⚡ Hubungkan Manual (Mode Simulasi Demo)</span>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold transition-colors ${demoMode ? 'bg-amber-100 text-amber-700' : 'bg-slate-200 text-slate-600'}`}>
-                {demoMode ? 'Tutup' : 'Buka'}
-              </span>
-            </button>
-
-            {demoMode && (
-              <div className="mt-3 space-y-2.5 pt-2.5 border-t border-slate-200/60 animate-fadeIn">
-                <div className="flex gap-2">
-                  <select
-                    value={demoPlatform}
-                    onChange={(e) => setDemoPlatform(e.target.value)}
-                    className="text-xs px-2.5 py-2 rounded-xl border border-slate-200 bg-white font-medium text-slate-700 outline-none"
-                  >
-                    <option value="instagram">Instagram</option>
-                    <option value="youtube">YouTube</option>
-                  </select>
-                  <input
-                    type="text"
-                    value={demoHandle}
-                    onChange={(e) => setDemoHandle(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleDemoConnect()}
-                    placeholder={demoPlatform === 'youtube' ? 'Nama Channel YouTube' : '@username_instagram'}
-                    className="flex-1 text-xs px-3 py-2 rounded-xl border border-slate-200 focus:border-slate-400 outline-none bg-white"
-                  />
-                  <button
-                    onClick={handleDemoConnect}
-                    disabled={demoLoading || !demoHandle.trim()}
-                    className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white text-xs font-bold transition-all shadow-sm"
-                  >
-                    {demoLoading ? '...' : 'Tambah'}
-                  </button>
+          {/* ── KONEKSI TIKTOK ────────────────────────────────────────────── */}
+          <div className="rounded-2xl border border-slate-900 bg-slate-900 text-white overflow-hidden shadow-md">
+            <div className="h-1 bg-gradient-to-r from-cyan-400 via-pink-500 to-cyan-400" />
+            <div className="p-4 space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-cyan-400 shrink-0">
+                  <TikTokIcon className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-white">TikTok Creator Account</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
+                    Koneksikan akun TikTok Anda via Username (@handle). Foto profil, followers, & komentar video ditarik otomatis.
+                  </p>
                 </div>
               </div>
-            )}
+
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={tiktokHandleInput}
+                  onChange={(e) => setTiktokHandleInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleConnectTikTok()}
+                  placeholder="@username_tiktok_anda"
+                  className="flex-1 text-xs px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-800 text-white placeholder-slate-500 focus:border-cyan-400 outline-none transition-all"
+                />
+                <button
+                  onClick={handleConnectTikTok}
+                  disabled={tiktokConnecting || !tiktokHandleInput.trim()}
+                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  {tiktokConnecting ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4" />
+                      <span>Hubungkan</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* ── Garis Pemisah ─────────────────────────────────────────────── */}
@@ -340,7 +347,7 @@ export default function SocialAccountModal({
                   <Link2 className="w-6 h-6 text-slate-400" />
                 </div>
                 <p className="text-xs font-semibold text-slate-600">Belum Ada Akun Terhubung</p>
-                <p className="text-[11px] text-slate-400">Klik salah satu tombol di atas untuk menghubungkan Instagram atau YouTube.</p>
+                <p className="text-[11px] text-slate-400">Klik salah satu opsi di atas untuk menghubungkan akun Instagram, YouTube, atau TikTok.</p>
               </div>
             ) : (
               accounts.map((acc) => {
@@ -348,6 +355,7 @@ export default function SocialAccountModal({
                 const expiry = formatExpiryDate(acc.token_expires_at);
                 const isRefreshing = refreshingTokenId === acc.id;
                 const isYoutube = acc.platform === 'youtube';
+                const isTiktok  = acc.platform === 'tiktok';
 
                 return (
                   <div
@@ -370,7 +378,7 @@ export default function SocialAccountModal({
                           ) : (
                             <div className={`w-full h-full bg-gradient-to-br ${PLATFORM_COLORS[acc.platform] || 'from-slate-400 to-slate-600'} flex items-center justify-center`}>
                               <span className="text-white text-xs font-bold">
-                                {acc.handle?.[1]?.toUpperCase() || (isYoutube ? 'Y' : 'I')}
+                                {acc.handle?.[1]?.toUpperCase() || (isYoutube ? 'Y' : isTiktok ? 'T' : 'I')}
                               </span>
                             </div>
                           )}
@@ -381,7 +389,9 @@ export default function SocialAccountModal({
                           <div className="flex items-center gap-1.5">
                             <p className="text-xs font-bold text-slate-900">{acc.handle}</p>
                             <span className={`inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
-                              isYoutube ? 'bg-red-50 text-red-700 border border-red-100' : 'bg-purple-50 text-purple-700 border border-purple-100'
+                              isYoutube ? 'bg-red-50 text-red-700 border border-red-100' :
+                              isTiktok  ? 'bg-slate-900 text-cyan-400 border border-slate-700' :
+                              'bg-purple-50 text-purple-700 border border-purple-100'
                             }`}>
                               {PLATFORM_ICONS[acc.platform]}
                               {acc.platform}
@@ -444,7 +454,7 @@ export default function SocialAccountModal({
                 className="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-60"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
-                {syncing ? 'Menarik komentar...' : 'Tarik Komentar Terbaru (Instagram & YouTube)'}
+                {syncing ? 'Menarik komentar...' : 'Tarik Komentar Terbaru (Instagram, YouTube & TikTok)'}
               </button>
             </div>
           )}
@@ -454,7 +464,7 @@ export default function SocialAccountModal({
         <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
           <span className="flex items-center gap-1.5">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-            Meta OAuth 2.0 & Google OAuth 2.0 (YouTube Data API v3)
+            Meta OAuth 2.0 · Google OAuth 2.0 · TikTok Engine API
           </span>
           <button onClick={onClose} className="text-xs text-slate-500 hover:text-slate-800 font-medium">
             Tutup

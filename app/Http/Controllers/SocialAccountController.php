@@ -6,6 +6,7 @@ use App\Models\Comment;
 use App\Models\SocialAccount;
 use App\Services\InstagramService;
 use App\Services\YouTubeService;
+use App\Services\TikTokService;
 use App\Services\GeminiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -16,15 +17,18 @@ class SocialAccountController extends Controller
 {
     protected InstagramService $instagramService;
     protected YouTubeService $youtubeService;
+    protected TikTokService $tikTokService;
     protected GeminiService $geminiService;
 
     public function __construct(
         InstagramService $instagramService,
         YouTubeService $youtubeService,
+        TikTokService $tikTokService,
         GeminiService $geminiService
     ) {
         $this->instagramService = $instagramService;
         $this->youtubeService   = $youtubeService;
+        $this->tikTokService    = $tikTokService;
         $this->geminiService    = $geminiService;
     }
 
@@ -44,20 +48,43 @@ class SocialAccountController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'platform' => 'required|string|in:instagram,tiktok,youtube',
-            'handle' => 'required|string|max:255',
+            'platform'        => 'required|string|in:instagram,tiktok,youtube',
+            'handle'          => 'required|string|max:255',
             'followers_count' => 'nullable|integer',
         ]);
 
-        $handle = $validated['handle'];
+        $platform = strtolower($validated['platform']);
+        $handle   = $validated['handle'];
         if (!str_starts_with($handle, '@')) {
             $handle = '@' . $handle;
         }
 
+        $avatarUrl      = null;
+        $followersCount = $validated['followers_count'] ?? null;
+
+        // Jika platform TikTok, tarik foto profil (avatar) dan followers asli via TikTokService
+        if ($platform === 'tiktok') {
+            try {
+                $profile = $this->tikTokService->getUserProfile($handle);
+                $avatarUrl      = $profile['avatar_url'] ?? null;
+                $followersCount = $profile['followers_count'] ?? rand(8000, 35000);
+                if (!empty($profile['handle'])) {
+                    $handle = $profile['handle'];
+                }
+            } catch (Exception $e) {
+                Log::warning('TikTok profile fetch failed in store(): ' . $e->getMessage());
+            }
+        }
+
+        if (!$followersCount) {
+            $followersCount = rand(5000, 50000);
+        }
+
         $socialAccount = auth()->user()->socialAccounts()->create([
-            'platform' => strtolower($validated['platform']),
-            'handle' => $handle,
-            'followers_count' => $validated['followers_count'] ?? rand(5000, 50000),
+            'platform'        => $platform,
+            'handle'          => $handle,
+            'followers_count' => $followersCount,
+            'avatar_url'      => $avatarUrl,
         ]);
 
         return response()->json([
@@ -102,8 +129,100 @@ class SocialAccountController extends Controller
             return $this->syncYouTube($socialAccount);
         }
 
-        // Default: Instagram sync (logika lama dipertahankan)
+        if ($socialAccount->platform === 'tiktok') {
+            return $this->syncTikTok($socialAccount);
+        }
+
+        // Default: Instagram sync
         return $this->syncInstagram($socialAccount);
+    }
+
+    /**
+     * ─── TIKTOK SYNC: Tarik Video & Komentar Terbaru dari Akun TikTok ─────────
+     */
+    protected function syncTikTok(SocialAccount $socialAccount): \Illuminate\Http\JsonResponse
+    {
+        try {
+            // 1. Perbarui foto profil & followers count terbaru
+            try {
+                $profile = $this->tikTokService->getUserProfile($socialAccount->handle);
+                $socialAccount->update([
+                    'followers_count' => $profile['followers_count'] ?? $socialAccount->followers_count,
+                    'avatar_url'      => $profile['avatar_url'] ?? $socialAccount->avatar_url,
+                ]);
+            } catch (Exception $e) {
+                Log::warning('TikTok sync: Gagal update profil: ' . $e->getMessage());
+            }
+
+            // 2. Ambil daftar video terbaru dari akun TikTok pengguna
+            $videos = $this->tikTokService->getUserVideos($socialAccount->handle, 10);
+
+            $newCommentsCount    = 0;
+            $hiddenCommentsCount = 0;
+
+            foreach ($videos as $video) {
+                if (empty($video['video_id'])) continue;
+
+                $videoId    = $video['video_id'];
+                $videoTitle = $video['title'] ?? ('Video TikTok #' . substr($videoId, -6));
+
+                // 3. Ambil komentar-komentar dari video ini
+                $rawComments = $this->tikTokService->getVideoComments($videoId, 50);
+
+                foreach ($rawComments as $c) {
+                    $commentId = $c['comment_id'];
+                    $text      = $c['text'] ?? '';
+                    $author    = $c['author'] ?? '@tiktok_user';
+                    $timestamp = isset($c['timestamp']) ? Carbon::parse($c['timestamp']) : now();
+
+                    if (empty(trim($text))) continue;
+
+                    // Lewati komentar yang sudah pernah disimpan
+                    if (Comment::where('platform_comment_id', $commentId)->exists()) {
+                        continue;
+                    }
+
+                    // 4. Analisis komentar menggunakan Gemini AI
+                    $analysis = $this->geminiService->analyzeComment($text);
+
+                    // 5. Simpan komentar ke database dengan label platform = 'tiktok'
+                    $newComment = Comment::create([
+                        'social_account_id'   => $socialAccount->id,
+                        'platform'            => 'tiktok',
+                        'platform_comment_id' => $commentId,
+                        'author'              => $author,
+                        'avatar'              => $c['author_photo'] ?? null,
+                        'post_title'          => $videoTitle,
+                        'text'                => $text,
+                        'sentiment'           => $analysis['sentiment'],
+                        'toxicity_score'      => $analysis['toxicity_score'],
+                        'severity'            => $analysis['severity'],
+                        'is_sarcasm'          => $analysis['is_sarcasm'],
+                        'action'              => $analysis['action'],
+                        'reason'              => $analysis['reason'] ?? null,
+                        'is_hidden'           => $analysis['action'] === 'HIDE',
+                        'timestamp'           => $timestamp,
+                    ]);
+
+                    $newCommentsCount++;
+                    if ($newComment->is_hidden) {
+                        $hiddenCommentsCount++;
+                    }
+                }
+            }
+
+            return response()->json([
+                'message'               => "Sinkronisasi TikTok selesai. {$newCommentsCount} komentar baru ditarik dari video TikTok terbaru, {$hiddenCommentsCount} komentar toksik otomatis ditahan.",
+                'new_comments_count'    => $newCommentsCount,
+                'hidden_comments_count' => $hiddenCommentsCount,
+                'account'               => $socialAccount->fresh(),
+            ]);
+        } catch (Exception $e) {
+            Log::error('TikTok Sync Error: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Gagal menarik data dari TikTok API: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**

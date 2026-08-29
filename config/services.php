@@ -57,4 +57,9 @@ return [
         ],
     ],
 
+    'tiktok' => [
+        'rapidapi_key'  => env('TIKTOK_RAPIDAPI_KEY'),
+        'rapidapi_host' => env('TIKTOK_RAPIDAPI_HOST', 'tiktok-api23.p.rapidapi.com'),
+    ],
+
 ];

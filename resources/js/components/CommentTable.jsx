@@ -23,6 +23,12 @@ const YoutubeSmallIcon = () => (
   </svg>
 );
 
+const TikTokSmallIcon = () => (
+  <svg className="w-3 h-3 fill-current text-cyan-400 shrink-0" viewBox="0 0 24 24">
+    <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.29 6.29 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.19 8.19 0 004.79 1.53V6.75a4.85 4.85 0 01-1.02-.06z"/>
+  </svg>
+);
+
 export default function CommentTable({ comments, onToggleHide, onDeleteComment, onResetMock }) {
   const [filter, setFilter] = useState("ALL");
   const [platformFilter, setPlatformFilter] = useState("ALL");
@@ -65,7 +71,7 @@ export default function CommentTable({ comments, onToggleHide, onDeleteComment, 
             Log Moderasi Komentar Masuk
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
-            Daftar penapisan otomatis komentar Instagram & YouTube sebelum dikonsumsi publik
+            Daftar penapisan otomatis komentar Instagram, YouTube & TikTok sebelum dikonsumsi publik
           </p>
         </div>
 
@@ -81,6 +87,7 @@ export default function CommentTable({ comments, onToggleHide, onDeleteComment, 
               <option value="ALL">Semua Platform</option>
               <option value="instagram">Instagram</option>
               <option value="youtube">YouTube</option>
+              <option value="tiktok">TikTok</option>
             </select>
           </div>
 
@@ -154,7 +161,10 @@ export default function CommentTable({ comments, onToggleHide, onDeleteComment, 
               </tr>
             ) : (
               filteredComments.map((cmt) => {
-                const isYoutube = (cmt.platform || 'instagram').toLowerCase() === 'youtube';
+                const platform = (cmt.platform || 'instagram').toLowerCase();
+                const isYoutube = platform === 'youtube';
+                const isTiktok  = platform === 'tiktok';
+
                 const formattedTime = cmt.timestamp 
                   ? (typeof cmt.timestamp === 'string' && cmt.timestamp.includes('T')
                       ? new Date(cmt.timestamp).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
@@ -178,9 +188,9 @@ export default function CommentTable({ comments, onToggleHide, onDeleteComment, 
                             className="w-8 h-8 rounded-full object-cover border border-slate-200"
                           />
                           <div className={`absolute -bottom-0.5 -right-0.5 p-0.5 rounded-full border border-white ${
-                            isYoutube ? 'bg-red-50' : 'bg-rose-50'
+                            isYoutube ? 'bg-red-50' : isTiktok ? 'bg-slate-900' : 'bg-rose-50'
                           }`}>
-                            {isYoutube ? <YoutubeSmallIcon /> : <InstagramSmallIcon />}
+                            {isYoutube ? <YoutubeSmallIcon /> : isTiktok ? <TikTokSmallIcon /> : <InstagramSmallIcon />}
                           </div>
                         </div>
 
@@ -188,11 +198,11 @@ export default function CommentTable({ comments, onToggleHide, onDeleteComment, 
                           <p className="font-bold text-slate-900">{cmt.author}</p>
                           <div className="flex items-center gap-1 mt-0.5">
                             <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.2 rounded-full ${
-                              isYoutube 
-                                ? 'bg-red-50 text-red-700 border border-red-100' 
-                                : 'bg-purple-50 text-purple-700 border border-purple-100'
+                              isYoutube ? 'bg-red-50 text-red-700 border border-red-100' :
+                              isTiktok  ? 'bg-slate-900 text-cyan-400 border border-slate-700' :
+                              'bg-purple-50 text-purple-700 border border-purple-100'
                             }`}>
-                              {isYoutube ? 'YouTube' : 'Instagram'}
+                              {isYoutube ? 'YouTube' : isTiktok ? 'TikTok' : 'Instagram'}
                             </span>
                             <span className="text-[10px] text-slate-400">· {formattedTime}</span>
                           </div>
