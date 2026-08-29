@@ -187,7 +187,10 @@ class CommentController extends Controller
      * sistem akan UN-HIDE terlebih dahulu agar komentar kembali terlihat
      * dan bisa ditarik ulang melalui "Tarik Komentar Terbaru".
      *
-     * Komentar di Instagram TIDAK PERNAH dihapus permanen oleh tombol ini.
+     * Untuk komentar YouTube: tidak ada un-hide karena YouTube API tidak mendukung
+     * operasi un-hide (hanya mendukung hide/heldForReview).
+     *
+     * Komentar di platform asal TIDAK PERNAH dihapus permanen oleh tombol ini.
      */
     public function destroy(Request $request, $id)
     {
@@ -201,10 +204,10 @@ class CommentController extends Controller
         $accessToken   = $socialAccount->getEffectiveAccessToken();
         $platformId    = $comment->platform_comment_id;
         $isRealComment = $platformId && !str_starts_with($platformId, 'sim_') && !str_starts_with($platformId, 'custom_');
+        $platform      = $comment->platform ?? 'instagram';
 
-        // Jika komentar ini sebelumnya di-HIDE oleh SABAR di Instagram,
-        // un-hide agar komentar kembali tampil dan bisa di-pull ulang.
-        if ($accessToken && $isRealComment && $comment->is_hidden) {
+        // Hanya un-hide di Instagram — YouTube tidak mendukung operasi ini via API.
+        if ($accessToken && $isRealComment && $comment->is_hidden && $platform === 'instagram') {
             try {
                 $this->instagramService->hideComment($platformId, $accessToken, false);
                 Log::info('Comment un-hidden on Instagram before SABAR delete', [
@@ -217,13 +220,14 @@ class CommentController extends Controller
             }
         }
 
-        // Hapus dari database SABAR lokal — komentar di Instagram tetap ada.
+        // Hapus dari database SABAR lokal — komentar di platform asal tetap ada.
         $comment->delete();
 
-        Log::info('Comment removed from SABAR local DB (Instagram comment preserved)', [
-            'sabar_id'           => $id,
-            'platform_comment_id'=> $platformId,
-            'author'             => $comment->author,
+        Log::info('Comment removed from SABAR local DB (platform comment preserved)', [
+            'sabar_id'            => $id,
+            'platform'            => $platform,
+            'platform_comment_id' => $platformId,
+            'author'              => $comment->author,
         ]);
 
         return response()->json(['message' => 'Komentar berhasil dihapus dari sistem SABAR']);
