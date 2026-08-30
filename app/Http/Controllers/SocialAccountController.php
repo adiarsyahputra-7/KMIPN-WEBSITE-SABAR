@@ -154,8 +154,8 @@ class SocialAccountController extends Controller
                 Log::warning('TikTok sync: Gagal update profil: ' . $e->getMessage());
             }
 
-            // 2. Ambil daftar video terbaru dari akun TikTok pengguna (dibatasi 2 video agar hemat kuota RapidAPI)
-            $videos = $this->tikTokService->getUserVideos($socialAccount->handle, 2);
+            // 2. Ambil daftar video terbaru dari akun TikTok pengguna (dibatasi 1 video agar hemat kuota RapidAPI)
+            $videos = $this->tikTokService->getUserVideos($socialAccount->handle, 1);
 
             $newCommentsCount    = 0;
             $hiddenCommentsCount = 0;
