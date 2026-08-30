@@ -45,7 +45,13 @@ const PLATFORM_COLORS = {
 };
 
 // ─── HELPER: Format tanggal expiry token ───────────────────────────────────────
-const formatExpiryDate = (dateString) => {
+const formatExpiryDate = (dateString, platform) => {
+  if (platform === 'youtube') {
+    return { text: 'Sesi aktif (Auto-Refresh)', urgent: false };
+  }
+  if (platform === 'tiktok') {
+    return { text: 'Terhubung via TikTok API', urgent: false };
+  }
   if (!dateString) return null;
   const date = new Date(dateString);
   const now = new Date();
@@ -352,7 +358,7 @@ export default function SocialAccountModal({
             ) : (
               accounts.map((acc) => {
                 const isSelected = currentAccount?.id === acc.id || currentAccount?.handle === acc.handle;
-                const expiry = formatExpiryDate(acc.token_expires_at);
+                const expiry = formatExpiryDate(acc.token_expires_at, acc.platform);
                 const isRefreshing = refreshingTokenId === acc.id;
                 const isYoutube = acc.platform === 'youtube';
                 const isTiktok  = acc.platform === 'tiktok';
@@ -420,8 +426,8 @@ export default function SocialAccountModal({
 
                       {/* Action Buttons */}
                       <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                        {/* Refresh Token — hanya untuk Instagram (Meta Long-Lived Token) */}
-                        {acc.token_expires_at && acc.platform === 'instagram' && (
+                        {/* Refresh Token — untuk Instagram (Meta) & YouTube (Google) */}
+                        {acc.token_expires_at && (acc.platform === 'instagram' || acc.platform === 'youtube') && (
                           <button
                             onClick={(e) => handleRefreshToken(acc.id, e)}
                             disabled={isRefreshing}

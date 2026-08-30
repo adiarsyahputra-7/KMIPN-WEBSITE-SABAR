@@ -244,6 +244,36 @@ class InstagramAuthController extends Controller
             ->where('user_id', $request->user()->id)
             ->firstOrFail();
 
+        // ── Penanganan Refresh Token YouTube ────────────────────────────────
+        if ($socialAccount->platform === 'youtube') {
+            if (!$socialAccount->youtube_refresh_token) {
+                return response()->json(['message' => 'Refresh token YouTube tidak ditemukan. Silakan hubungkan ulang akun YouTube Anda.'], 422);
+            }
+
+            try {
+                $refreshed = app(\App\Services\YouTubeService::class)->refreshAccessToken($socialAccount->youtube_refresh_token);
+                $expiresIn = $refreshed['expires_in'] ?? 3600;
+
+                $socialAccount->update([
+                    'access_token'     => $refreshed['access_token'],
+                    'token_expires_at' => Carbon::now()->addSeconds($expiresIn),
+                ]);
+
+                Log::info('YouTube token refreshed manually via API', [
+                    'social_account_id' => $socialAccountId,
+                    'expires_at'        => $socialAccount->fresh()->token_expires_at->toDateTimeString(),
+                ]);
+
+                return response()->json([
+                    'message'    => 'Token YouTube berhasil diperbarui.',
+                    'expires_at' => $socialAccount->fresh()->token_expires_at,
+                ]);
+            } catch (Exception $e) {
+                Log::error('YouTube token refresh failed: ' . $e->getMessage());
+                return response()->json(['message' => 'Gagal memperbarui token YouTube: ' . $e->getMessage()], 500);
+            }
+        }
+
         if (!$socialAccount->access_token) {
             return response()->json(['message' => 'Tidak ada access token yang tersimpan untuk akun ini.'], 422);
         }
