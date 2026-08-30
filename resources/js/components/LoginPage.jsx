@@ -12,6 +12,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import api from '../api';
+import SabarLogo from './SabarLogo';
 
 export default function LoginPage({ onLogin }) {
   const [name, setName] = useState('');
@@ -88,48 +89,29 @@ export default function LoginPage({ onLogin }) {
   return (
     <div className="min-h-screen w-full flex flex-col md:flex-row bg-white font-sans overflow-hidden">
 
-      {/* ── Left Pane: Brand Banner ─────────────────────────────────────────── */}
-      <div className="w-full md:w-[50%] lg:w-[52%] bg-gradient-to-br from-[#84B3CE] via-[#16587B] to-[#0b2e42] p-8 sm:p-14 lg:p-20 flex flex-col justify-between relative overflow-hidden text-white min-h-[380px] md:min-h-screen shrink-0">
+      {/* ── Left Pane: Brand Banner (Menggunakan Poster Asli Sabar) ────────────────── */}
+      <div 
+        className="w-full md:w-[50%] lg:w-[52%] bg-[#0B1D33] relative min-h-[480px] md:min-h-screen shrink-0 flex flex-col justify-between p-8 sm:p-14 lg:p-20 overflow-hidden"
+        style={{
+          backgroundImage: "url('/sabar-logo-full.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        {/* Subtle dark overlay to match the high premium vibe */}
+        <div className="absolute inset-0 bg-black/5 pointer-events-none" />
 
-        {/* Floating Decorative Glows */}
-        <div className="absolute top-16 right-16 w-36 h-36 rounded-full bg-gradient-to-tr from-[#F5EEDD] to-[#84B3CE] opacity-50 blur-xs shadow-2xl pointer-events-none" />
-        <div className="absolute bottom-24 left-12 w-48 h-48 rounded-full bg-gradient-to-tr from-[#16587B] to-[#84B3CE] opacity-40 blur-xs shadow-2xl pointer-events-none" />
-        <div className="absolute top-1/2 left-1/3 w-20 h-20 rounded-full bg-gradient-to-br from-[#F5EEDD] to-[#16587B] opacity-25 pointer-events-none" />
-
-        {/* Organic Wave SVGs */}
-        <svg className="absolute inset-0 w-full h-full object-cover opacity-25 pointer-events-none" viewBox="0 0 500 500" preserveAspectRatio="none">
-          <path d="M0,100 C160,220 340,10 500,120 L500,0 L0,0 Z" fill="#84B3CE" />
-          <path d="M0,260 C180,400 320,130 500,300 L500,500 L0,500 Z" fill="#16587B" />
-          <path d="M0,410 C210,310 290,460 500,360 L500,500 L0,500 Z" fill="#0b2e42" />
-        </svg>
-
-        {/* Center Presentation Title */}
-        <div className="relative z-10 my-auto space-y-4 py-8 max-w-lg">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#F5EEDD]/10 backdrop-blur-md border border-[#F5EEDD]/20 text-xs text-[#F5EEDD] font-medium">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Proteksi Mental & Moderasi AI</span>
-          </div>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold font-['Plus_Jakarta_Sans'] tracking-tight leading-tight text-[#F5EEDD]">
-            Sistem Analisis Bullying & Asisten Rehat
-          </h1>
-          <p className="text-sm text-[#F5EEDD]/95 leading-relaxed max-w-md font-light">
-            Mencegat narasi negatif secara real-time demi ruang kerja digital yang lebih humanis, sehat, dan berkelanjutan.
-          </p>
-
-          {/* Feature Bullets */}
-          <div className="space-y-2 pt-2">
-            {['Deteksi sarkasme & ujaran kebencian real-time', 'Asisten Rehat & monitoring beban mental', 'Moderation-as-a-Service berbasis NLP'].map((feat) => (
-              <div key={feat} className="flex items-center gap-2 text-xs text-[#F5EEDD]/80">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#84B3CE] shrink-0" />
-                {feat}
-              </div>
-            ))}
+        {/* Top Header Badge */}
+        <div className="relative z-10 self-start">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-xs text-[#F4EAD2] font-medium tracking-wide">
+            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+            <span>KMIPN 2026 · Official System</span>
           </div>
         </div>
 
-        {/* Bottom Badge */}
-        <div className="relative z-10 text-xs text-[#F5EEDD]/60 font-medium">
-          KMIPN 2026 · Sistem Kompetisi Tingkat Nasional
+        {/* Bottom Metadata */}
+        <div className="relative z-10 mt-auto text-xs text-[#F4EAD2]/60 font-medium">
+          SABAR · Sistem Analisis Bullying & Asisten Rehat
         </div>
       </div>
 

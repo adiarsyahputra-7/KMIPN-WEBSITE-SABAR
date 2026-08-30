@@ -12,6 +12,7 @@ import {
   LogOut,
   UserCheck
 } from 'lucide-react';
+import SabarLogo from './SabarLogo';
 
 export default function Sidebar({ activeTab, setActiveTab, onOpenRehat, onOpenConnect, connectedAccount, stressLevel, user, onLogout }) {
   const isHighStress = stressLevel >= 65;
@@ -52,21 +53,15 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenRehat, onOpenCo
     <aside className="w-64 bg-white border-r border-slate-200/80 flex flex-col h-screen sticky top-0 shrink-0 select-none">
       
       {/* Brand Header */}
-      <div className="h-16 px-6 flex items-center gap-3 border-b border-slate-100">
-        <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center shadow-sm">
-          <ShieldCheck className="w-5 h-5 text-emerald-400" />
-        </div>
-        <div>
-          <div className="flex items-center gap-1.5">
-            <span className="font-bold tracking-tight text-slate-900 font-['Plus_Jakarta_Sans'] text-base">
-              SABAR
-            </span>
-            <span className="text-[10px] font-semibold bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200/60">
-              Pro
-            </span>
-          </div>
-          <p className="text-[11px] text-slate-400 truncate">Moderation & Well-being</p>
-        </div>
+      <div className="h-16 px-5 flex items-center border-b border-slate-100">
+        <SabarLogo 
+          variant="full" 
+          theme="navy-gold" 
+          size="md" 
+          showSubtitle={true}
+          showBadge={true}
+          badgeText="Pro"
+        />
       </div>
 
       {/* Navigation List */}
