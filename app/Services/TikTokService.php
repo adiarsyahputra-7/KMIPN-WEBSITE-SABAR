@@ -110,7 +110,48 @@ class TikTokService
     }
 
     /**
+     * ─── Ambil secUid dari handle TikTok via RapidAPI ────────────────────────
+     *
+     * Endpoint api/user/posts pada RapidAPI tiktok-api23 memerlukan `secUid`,
+     * bukan `uniqueId`. Method ini mengambil secUid secara otomatis dari profil.
+     *
+     * @param string $cleanHandle Username TikTok tanpa '@'
+     * @return string|null secUid atau null jika gagal
+     */
+    protected function getSecUidFromHandle(string $cleanHandle): ?string
+    {
+        if (empty($this->apiKey) || str_contains($this->apiKey, 'kode_acak')) {
+            return null;
+        }
+
+        try {
+            $response = Http::withHeaders([
+                'x-rapidapi-key'  => $this->apiKey,
+                'x-rapidapi-host' => $this->apiHost,
+            ])->get("https://{$this->apiHost}/api/user/info", [
+                'uniqueId' => $cleanHandle,
+            ]);
+
+            if ($response->successful()) {
+                $secUid = $response->json('userInfo.user.secUid');
+                if (!empty($secUid)) {
+                    Log::info('TikTok: secUid resolved', ['handle' => $cleanHandle, 'secUid' => substr($secUid, 0, 20) . '...']);
+                    return $secUid;
+                }
+            }
+        } catch (Exception $e) {
+            Log::warning('TikTok getSecUidFromHandle Exception: ' . $e->getMessage());
+        }
+
+        return null;
+    }
+
+    /**
      * ─── Ambil Daftar Video Terbaru Milik Akun TikTok ────────────────────────
+     *
+     * PENTING: Endpoint RapidAPI `api/user/posts` WAJIB menggunakan parameter
+     * `secUid` (bukan `uniqueId`). Method ini otomatis mengambil secUid lebih
+     * dulu dari profil, kemudian menggunakannya untuk mengambil daftar video.
      *
      * @param string $handle Username TikTok
      * @param int $limit Jumlah video yang diambil (default: 10)
@@ -120,28 +161,43 @@ class TikTokService
     {
         $cleanHandle = ltrim(trim($handle), '@');
 
-        // 1. RapidAPI TikTok Engine
+        // 1. RapidAPI TikTok Engine — gunakan secUid yang diambil dari profil
         if (!empty($this->apiKey) && !str_contains($this->apiKey, 'kode_acak')) {
             try {
-                $response = Http::withHeaders([
-                    'x-rapidapi-key'  => $this->apiKey,
-                    'x-rapidapi-host' => $this->apiHost,
-                ])->get("https://{$this->apiHost}/api/user/posts", [
-                    'uniqueId' => $cleanHandle,
-                    'count'    => $limit,
-                ]);
+                // Ambil secUid terlebih dahulu (WAJIB untuk endpoint posts)
+                $secUid = $this->getSecUidFromHandle($cleanHandle);
 
-                if ($response->successful()) {
-                    $posts = $response->json('data.itemList') ?? $response->json('itemList') ?? [];
-                    if (!empty($posts)) {
-                        return array_map(function ($p) {
-                            return [
-                                'video_id'   => $p['id'] ?? $p['video']['id'] ?? null,
-                                'title'      => $p['desc'] ?? 'Video TikTok',
-                                'cover_url'  => $p['video']['cover'] ?? null,
-                                'play_count' => $p['stats']['playCount'] ?? 0,
-                            ];
-                        }, array_slice($posts, 0, $limit));
+                if ($secUid) {
+                    $response = Http::withHeaders([
+                        'x-rapidapi-key'  => $this->apiKey,
+                        'x-rapidapi-host' => $this->apiHost,
+                    ])->get("https://{$this->apiHost}/api/user/posts", [
+                        'secUid' => $secUid,
+                        'count'  => $limit,
+                    ]);
+
+                    Log::info('TikTok getUserVideos response', [
+                        'handle'    => $cleanHandle,
+                        'http_code' => $response->status(),
+                        'keys'      => array_keys($response->json() ?? []),
+                    ]);
+
+                    if ($response->successful()) {
+                        $posts = $response->json('data.itemList')
+                            ?? $response->json('itemList')
+                            ?? $response->json('data')
+                            ?? [];
+
+                        if (!empty($posts) && is_array($posts)) {
+                            return array_map(function ($p) {
+                                return [
+                                    'video_id'   => $p['id'] ?? $p['video']['id'] ?? null,
+                                    'title'      => $p['desc'] ?? 'Video TikTok',
+                                    'cover_url'  => $p['video']['cover'] ?? null,
+                                    'play_count' => $p['stats']['playCount'] ?? 0,
+                                ];
+                            }, array_slice($posts, 0, $limit));
+                        }
                     }
                 }
             } catch (Exception $e) {
@@ -151,7 +207,7 @@ class TikTokService
 
         // 2. Fallback Engine (TikWM)
         try {
-            $fallbackRes = Http::get('https://www.tikwm.com/api/user/posts', [
+            $fallbackRes = Http::timeout(10)->get('https://www.tikwm.com/api/user/posts', [
                 'unique_id' => $cleanHandle,
                 'count'     => $limit,
             ]);
@@ -159,6 +215,7 @@ class TikTokService
             if ($fallbackRes->successful() && $fallbackRes->json('code') === 0) {
                 $videos = $fallbackRes->json('data.videos') ?? [];
                 if (!empty($videos)) {
+                    Log::info('TikTok: videos retrieved via TikWM fallback', ['count' => count($videos)]);
                     return array_map(function ($v) {
                         return [
                             'video_id'   => $v['video_id'] ?? $v['id'] ?? null,
@@ -173,11 +230,11 @@ class TikTokService
             Log::warning('TikTok Fallback getUserVideos Exception: ' . $e->getMessage());
         }
 
-        // 3. Fallback Data Sample Video
+        // 3. Fallback Data Sample Video (jika semua engine gagal)
+        Log::warning('TikTok: Semua engine gagal, menggunakan dummy video data', ['handle' => $cleanHandle]);
         return [
             ['video_id' => 'tt_vid_101', 'title' => 'Edukasi Kesehatan Mental Creator #SABAR', 'cover_url' => null, 'play_count' => 12400],
             ['video_id' => 'tt_vid_102', 'title' => 'Tips Menghadapi Komentar Haters di Medsos', 'cover_url' => null, 'play_count' => 8900],
-            ['video_id' => 'tt_vid_103', 'title' => 'POV: Ketika Kamu Punya Asisten Digital SABAR', 'cover_url' => null, 'play_count' => 25100],
         ];
     }
 
