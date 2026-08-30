@@ -407,12 +407,13 @@ class SocialAccountController extends Controller
                         $analysis = $this->geminiService->analyzeComment($text);
 
                         // Simpan ke database dengan label platform instagram
+                        $cleanUser = ltrim($username, '@');
                         $newComment = Comment::create([
                             'social_account_id'   => $socialAccount->id,
                             'platform'            => 'instagram',
                             'platform_comment_id' => $platformCommentId,
-                            'author'              => '@' . ltrim($username, '@'),
-                            'avatar'              => null,
+                            'author'              => '@' . $cleanUser,
+                            'avatar'              => "https://unavatar.io/instagram/{$cleanUser}",
                             'post_title'          => $postCaption,
                             'text'                => $text,
                             'sentiment'           => $analysis['sentiment'],

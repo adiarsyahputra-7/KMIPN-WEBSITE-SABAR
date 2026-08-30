@@ -183,8 +183,16 @@ export default function CommentTable({ comments, onToggleHide, onDeleteComment, 
                       <div className="flex items-center gap-2.5">
                         <div className="relative">
                           <img
-                            src={cmt.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"}
+                            src={
+                              cmt.avatar ||
+                              `https://unavatar.io/instagram/${(cmt.author || '').replace('@', '')}`
+                            }
                             alt={cmt.author}
+                            onError={(e) => {
+                              const cleanName = (cmt.author || 'User').replace('@', '');
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(cleanName)}&background=84B3CE&color=ffffff&bold=true`;
+                            }}
                             className="w-8 h-8 rounded-full object-cover border border-slate-200"
                           />
                           <div className={`absolute -bottom-0.5 -right-0.5 p-0.5 rounded-full border border-white ${
