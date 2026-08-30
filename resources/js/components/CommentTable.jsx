@@ -29,25 +29,22 @@ const TikTokSmallIcon = () => (
   </svg>
 );
 
-export default function CommentTable({ comments, onToggleHide, onDeleteComment, onResetMock }) {
+export default function CommentTable({ comments, onToggleHide, onDeleteComment, onResetMock, isDarkMode }) {
   const [filter, setFilter] = useState("ALL");
   const [platformFilter, setPlatformFilter] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredComments = comments.filter(c => {
-    // Filter status
     if (filter === "HIDDEN" && !c.is_hidden) return false;
     if (filter === "ALLOWED" && c.is_hidden) return false;
     if (filter === "POSITIF" && c.sentiment !== "POSITIF") return false;
     if (filter === "NEGATIF" && c.sentiment !== "NEGATIF") return false;
 
-    // Filter platform
     if (platformFilter !== "ALL") {
       const commentPlatform = (c.platform || 'instagram').toLowerCase();
       if (commentPlatform !== platformFilter.toLowerCase()) return false;
     }
 
-    // Search query
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       return (
@@ -61,28 +58,39 @@ export default function CommentTable({ comments, onToggleHide, onDeleteComment, 
     return true;
   });
 
+  // ── Warna dinamis sesuai tema ──────────────────────────────────────────────
+  const dm = isDarkMode;
+
   return (
-    <div className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-sm space-y-4">
+    <div className={`p-6 rounded-3xl border transition-all duration-300 space-y-4 ${
+      dm ? 'bg-[#0B1522] border-[#16587B]/20 shadow-md' : 'bg-white border-slate-200/80 shadow-sm'
+    }`}>
       
       {/* Header & Controls */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+      <div className={`flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b ${
+        dm ? 'border-[#16587B]/15' : 'border-slate-100'
+      }`}>
         <div>
-          <h3 className="text-sm font-bold text-slate-900 font-['Plus_Jakarta_Sans']">
+          <h3 className={`text-sm font-bold font-['Plus_Jakarta_Sans'] ${dm ? 'text-[#F5EEDD]' : 'text-slate-900'}`}>
             Log Moderasi Komentar Masuk
           </h3>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className={`text-xs mt-0.5 ${dm ? 'text-[#84B3CE]/60' : 'text-slate-500'}`}>
             Daftar penapisan otomatis komentar Instagram, YouTube & TikTok sebelum dikonsumsi publik
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Platform Filter Dropdown */}
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200/80 rounded-xl px-2.5 py-1">
-            <SlidersHorizontal className="w-3.5 h-3.5 text-slate-400" />
+          <div className={`flex items-center gap-1.5 border rounded-xl px-2.5 py-1 ${
+            dm ? 'bg-[#0A2233]/60 border-[#16587B]/25' : 'bg-slate-50 border-slate-200/80'
+          }`}>
+            <SlidersHorizontal className={`w-3.5 h-3.5 ${dm ? 'text-[#84B3CE]/60' : 'text-slate-400'}`} />
             <select
               value={platformFilter}
               onChange={(e) => setPlatformFilter(e.target.value)}
-              className="bg-transparent text-xs font-semibold text-slate-700 outline-none cursor-pointer"
+              className={`bg-transparent text-xs font-semibold outline-none cursor-pointer ${
+                dm ? 'text-[#84B3CE]' : 'text-slate-700'
+              }`}
             >
               <option value="ALL">Semua Platform</option>
               <option value="instagram">Instagram</option>
@@ -93,13 +101,17 @@ export default function CommentTable({ comments, onToggleHide, onDeleteComment, 
 
           {/* Search Box */}
           <div className="relative">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className={`w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 ${dm ? 'text-[#84B3CE]/50' : 'text-slate-400'}`} />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari komentar..."
-              className="pl-8 pr-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200/80 text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-slate-400 w-40 sm:w-52 transition-all"
+              className={`pl-8 pr-3 py-1.5 rounded-xl text-xs w-40 sm:w-52 transition-all focus:outline-none focus:ring-1 focus:ring-[#16587B] ${
+                dm
+                  ? 'bg-[#0A2233]/60 border border-[#16587B]/25 text-white placeholder-[#84B3CE]/40 focus:bg-[#071725]'
+                  : 'bg-slate-50 border border-slate-200/80 text-slate-800 placeholder-slate-400 focus:bg-white focus:border-slate-400'
+              }`}
             />
           </div>
 
@@ -107,7 +119,11 @@ export default function CommentTable({ comments, onToggleHide, onDeleteComment, 
           <button
             onClick={onResetMock}
             title="Muat ulang data"
-            className="p-2 rounded-xl bg-slate-50 border border-slate-200/80 text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all"
+            className={`p-2 rounded-xl border transition-all ${
+              dm
+                ? 'bg-[#0A2233]/60 border-[#16587B]/25 text-[#84B3CE]/70 hover:text-[#F5EEDD] hover:bg-[#16587B]/20'
+                : 'bg-slate-50 border-slate-200/80 text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+            }`}
           >
             <RefreshCw className="w-3.5 h-3.5" />
           </button>
@@ -128,8 +144,9 @@ export default function CommentTable({ comments, onToggleHide, onDeleteComment, 
             onClick={() => setFilter(tab.key)}
             className={`px-3 py-1.5 text-xs font-semibold rounded-xl transition-all ${
               filter === tab.key
-                ? 'bg-slate-900 text-white shadow-sm'
-                : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-100'
+                ? dm ? 'bg-[#16587B] text-[#F5EEDD] shadow-sm' : 'bg-slate-900 text-white shadow-sm'
+                : dm ? 'bg-[#0A2233]/40 text-[#84B3CE]/70 hover:bg-[#16587B]/20 hover:text-[#F5EEDD] border border-[#16587B]/20' 
+                     : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-100'
             }`}
           >
             {tab.label}
@@ -138,9 +155,11 @@ export default function CommentTable({ comments, onToggleHide, onDeleteComment, 
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto border border-slate-100 rounded-2xl">
+      <div className={`overflow-x-auto border rounded-2xl ${dm ? 'border-[#16587B]/15' : 'border-slate-100'}`}>
         <table className="w-full text-left text-xs">
-          <thead className="bg-slate-50/80 border-b border-slate-200/80 text-slate-500 font-semibold uppercase tracking-wider">
+          <thead className={`border-b font-semibold uppercase tracking-wider ${
+            dm ? 'bg-[#0A2233]/60 border-[#16587B]/15 text-[#84B3CE]/70' : 'bg-slate-50/80 border-slate-200/80 text-slate-500'
+          }`}>
             <tr>
               <th className="py-3 px-4">Pengguna & Platform</th>
               <th className="py-3 px-4">Konten Komentar</th>
@@ -149,13 +168,13 @@ export default function CommentTable({ comments, onToggleHide, onDeleteComment, 
               <th className="py-3 px-4 text-right">Aksi</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className={`divide-y ${dm ? 'divide-[#16587B]/10' : 'divide-slate-100'}`}>
             {filteredComments.length === 0 ? (
               <tr>
-                <td colSpan={5} className="py-12 text-center text-slate-400">
+                <td colSpan={5} className="py-12 text-center">
                   <div className="space-y-1">
-                    <p className="font-semibold text-slate-600">Tidak ada komentar ditemukan</p>
-                    <p className="text-[11px] text-slate-400">Coba ubah kata kunci pencarian atau filter platform di atas.</p>
+                    <p className={`font-semibold ${dm ? 'text-[#84B3CE]/70' : 'text-slate-600'}`}>Tidak ada komentar ditemukan</p>
+                    <p className={`text-[11px] ${dm ? 'text-[#84B3CE]/40' : 'text-slate-400'}`}>Coba ubah kata kunci pencarian atau filter platform di atas.</p>
                   </div>
                 </td>
               </tr>
@@ -174,8 +193,10 @@ export default function CommentTable({ comments, onToggleHide, onDeleteComment, 
                 return (
                   <tr 
                     key={cmt.id} 
-                    className={`hover:bg-slate-50/80 transition-colors ${
-                      cmt.is_hidden ? 'bg-rose-50/30' : ''
+                    className={`transition-colors ${
+                      cmt.is_hidden
+                        ? dm ? 'bg-rose-950/10' : 'bg-rose-50/30'
+                        : dm ? 'hover:bg-white/5' : 'hover:bg-slate-50/80'
                     }`}
                   >
                     {/* User & Platform */}
@@ -193,9 +214,11 @@ export default function CommentTable({ comments, onToggleHide, onDeleteComment, 
                               e.currentTarget.onerror = null;
                               e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(cleanName)}&background=84B3CE&color=ffffff&bold=true`;
                             }}
-                            className="w-8 h-8 rounded-full object-cover border border-slate-200"
+                            className={`w-8 h-8 rounded-full object-cover border ${dm ? 'border-[#16587B]/30' : 'border-slate-200'}`}
                           />
-                          <div className={`absolute -bottom-0.5 -right-0.5 p-0.5 rounded-full border border-white ${
+                          <div className={`absolute -bottom-0.5 -right-0.5 p-0.5 rounded-full border ${
+                            dm ? 'border-[#0B1522]' : 'border-white'
+                          } ${
                             isYoutube ? 'bg-red-50' : isTiktok ? 'bg-slate-900' : 'bg-rose-50'
                           }`}>
                             {isYoutube ? <YoutubeSmallIcon /> : isTiktok ? <TikTokSmallIcon /> : <InstagramSmallIcon />}
@@ -203,16 +226,16 @@ export default function CommentTable({ comments, onToggleHide, onDeleteComment, 
                         </div>
 
                         <div>
-                          <p className="font-bold text-slate-900">{cmt.author}</p>
+                          <p className={`font-bold ${dm ? 'text-[#F5EEDD]' : 'text-slate-900'}`}>{cmt.author}</p>
                           <div className="flex items-center gap-1 mt-0.5">
                             <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.2 rounded-full ${
                               isYoutube ? 'bg-red-50 text-red-700 border border-red-100' :
                               isTiktok  ? 'bg-slate-900 text-cyan-400 border border-slate-700' :
-                              'bg-purple-50 text-purple-700 border border-purple-100'
+                              dm ? 'bg-purple-950/30 text-purple-300 border border-purple-900/30' : 'bg-purple-50 text-purple-700 border border-purple-100'
                             }`}>
                               {isYoutube ? 'YouTube' : isTiktok ? 'TikTok' : 'Instagram'}
                             </span>
-                            <span className="text-[10px] text-slate-400">· {formattedTime}</span>
+                            <span className={`text-[10px] ${dm ? 'text-[#84B3CE]/50' : 'text-slate-400'}`}>· {formattedTime}</span>
                           </div>
                         </div>
                       </div>
@@ -221,11 +244,15 @@ export default function CommentTable({ comments, onToggleHide, onDeleteComment, 
                     {/* Comment Text */}
                     <td className="py-3.5 px-4 max-w-sm sm:max-w-md">
                       <div className="space-y-1">
-                        <p className={`text-slate-800 leading-relaxed ${cmt.is_hidden ? 'line-through text-slate-400' : ''}`}>
+                        <p className={`leading-relaxed ${
+                          cmt.is_hidden 
+                            ? dm ? 'line-through text-[#84B3CE]/40' : 'line-through text-slate-400'
+                            : dm ? 'text-slate-200' : 'text-slate-800'
+                        }`}>
                           {cmt.text}
                         </p>
                         {(cmt.post_title || cmt.postTitle) && (
-                          <p className="text-[10px] text-slate-400 truncate font-medium">
+                          <p className={`text-[10px] truncate font-medium ${dm ? 'text-[#84B3CE]/50' : 'text-slate-400'}`}>
                             📁 {cmt.post_title || cmt.postTitle}
                           </p>
                         )}
@@ -233,10 +260,10 @@ export default function CommentTable({ comments, onToggleHide, onDeleteComment, 
                           <div className="pt-0.5">
                             <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[10px] font-medium border transition-all ${
                               cmt.is_hidden
-                                ? 'bg-rose-50/80 text-rose-700 border-rose-100'
-                                : 'bg-slate-50 text-slate-600 border-slate-200/60'
+                                ? dm ? 'bg-rose-950/25 text-rose-300 border-rose-900/30' : 'bg-rose-50/80 text-rose-700 border-rose-100'
+                                : dm ? 'bg-[#0A2233]/60 text-[#84B3CE]/70 border-[#16587B]/20' : 'bg-slate-50 text-slate-600 border-slate-200/60'
                             }`}>
-                              <span className="font-bold text-slate-500">🤖 Analisis SABAR:</span>
+                              <span className={`font-bold ${dm ? 'text-[#84B3CE]/60' : 'text-slate-500'}`}>🤖 Analisis SABAR:</span>
                               <span>{cmt.reason}</span>
                             </span>
                           </div>
@@ -250,21 +277,23 @@ export default function CommentTable({ comments, onToggleHide, onDeleteComment, 
                         <div className="flex items-center gap-1">
                           <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
                             cmt.sentiment === 'POSITIF'
-                              ? 'bg-emerald-100 text-emerald-800'
+                              ? dm ? 'bg-emerald-950/40 text-emerald-400' : 'bg-emerald-100 text-emerald-800'
                               : cmt.sentiment === 'NEGATIF'
-                              ? 'bg-rose-100 text-rose-800'
-                              : 'bg-slate-100 text-slate-700'
+                              ? dm ? 'bg-rose-950/40 text-rose-400' : 'bg-rose-100 text-rose-800'
+                              : dm ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-700'
                           }`}>
                             {cmt.sentiment}
                           </span>
                           {cmt.is_sarcasm && (
-                            <span className="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-800">
+                            <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold ${
+                              dm ? 'bg-amber-950/30 text-amber-400' : 'bg-amber-100 text-amber-800'
+                            }`}>
                               Sarkas
                             </span>
                           )}
                         </div>
-                        <p className="text-[10px] text-slate-500">
-                          Toksisitas: <strong>{Math.round((cmt.toxicity_score || 0) * 100)}%</strong> (Sev: {cmt.severity || 1}/10)
+                        <p className={`text-[10px] ${dm ? 'text-[#84B3CE]/55' : 'text-slate-500'}`}>
+                          Toksisitas: <strong className={dm ? 'text-[#F5EEDD]' : ''}>{Math.round((cmt.toxicity_score || 0) * 100)}%</strong> (Sev: {cmt.severity || 1}/10)
                         </p>
                       </div>
                     </td>
@@ -272,12 +301,16 @@ export default function CommentTable({ comments, onToggleHide, onDeleteComment, 
                     {/* Status */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
                       {cmt.is_hidden ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-700">
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                          dm ? 'bg-rose-950/30 text-rose-400' : 'bg-rose-100 text-rose-700'
+                        }`}>
                           <EyeOff className="w-3 h-3" />
                           Tertahan (Hidden)
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-700">
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold ${
+                          dm ? 'bg-emerald-950/30 text-emerald-400' : 'bg-emerald-100 text-emerald-700'
+                        }`}>
                           <Eye className="w-3 h-3" />
                           Tayang (Allowed)
                         </span>
@@ -289,10 +322,12 @@ export default function CommentTable({ comments, onToggleHide, onDeleteComment, 
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => onToggleHide(cmt.id)}
-                          className={`px-3 py-1 rounded-xl text-xs font-semibold transition-all ${
+                          className={`px-3 py-1 rounded-xl text-xs font-semibold transition-all border ${
                             cmt.is_hidden
-                              ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200'
-                              : 'bg-slate-50 hover:bg-rose-50 text-slate-600 hover:text-rose-700 border border-slate-200'
+                              ? dm ? 'bg-[#16587B]/20 text-[#F5EEDD] border-[#16587B]/30 hover:bg-[#16587B]/40'
+                                   : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200'
+                              : dm ? 'bg-transparent text-[#84B3CE] border-[#16587B]/20 hover:bg-rose-950/20 hover:text-rose-400 hover:border-rose-900/30'
+                                   : 'bg-slate-50 hover:bg-rose-50 text-slate-600 hover:text-rose-700 border-slate-200'
                           }`}
                         >
                           {cmt.is_hidden ? "Tampilkan" : "Sembunyikan"}
@@ -304,7 +339,11 @@ export default function CommentTable({ comments, onToggleHide, onDeleteComment, 
                             }
                           }}
                           title="Hapus komentar dari sistem SABAR"
-                          className="p-1.5 rounded-xl bg-slate-50 hover:bg-rose-50 text-slate-400 hover:text-rose-600 border border-slate-200 transition-all"
+                          className={`p-1.5 rounded-xl border transition-all ${
+                            dm
+                              ? 'bg-transparent text-[#84B3CE]/50 border-[#16587B]/20 hover:bg-rose-950/20 hover:text-rose-400 hover:border-rose-900/30'
+                              : 'bg-slate-50 hover:bg-rose-50 text-slate-400 hover:text-rose-600 border-slate-200'
+                          }`}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -321,3 +360,4 @@ export default function CommentTable({ comments, onToggleHide, onDeleteComment, 
     </div>
   );
 }
+

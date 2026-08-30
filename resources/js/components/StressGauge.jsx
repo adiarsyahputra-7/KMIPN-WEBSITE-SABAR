@@ -1,7 +1,7 @@
 import React from 'react';
 import { HeartPulse, CheckCircle2, AlertTriangle, Flame, Info, ArrowRight } from 'lucide-react';
 
-export default function StressGauge({ stressLevel, avgSeverity, toxicCount, totalComments, onTriggerRehat }) {
+export default function StressGauge({ stressLevel, avgSeverity, toxicCount, totalComments, onTriggerRehat, isDarkMode }) {
   const radius = 54;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (stressLevel / 100) * circumference;
@@ -10,9 +10,11 @@ export default function StressGauge({ stressLevel, avgSeverity, toxicCount, tota
     title: "Kondisi Kerja Sehat",
     desc: "Beban paparan komentar negatif sangat minim. Tingkat stres dalam batas normal.",
     badge: "Zona Aman",
-    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    badgeClass: isDarkMode 
+      ? "bg-emerald-950/30 text-emerald-300 border-emerald-500/20" 
+      : "bg-emerald-50 text-emerald-700 border-emerald-200",
     strokeColor: "#10B981",
-    textColor: "text-emerald-700",
+    textColor: isDarkMode ? "text-emerald-400" : "text-emerald-700",
     icon: CheckCircle2,
   };
 
@@ -21,9 +23,11 @@ export default function StressGauge({ stressLevel, avgSeverity, toxicCount, tota
       title: "Beban Mental Kritis",
       desc: "Volume komentar kasar melampaui batas aman. Asisten merekomendasikan jeda rehat.",
       badge: "Perlu Rehat",
-      badgeClass: "bg-rose-50 text-rose-700 border-rose-200",
+      badgeClass: isDarkMode 
+        ? "bg-rose-950/30 text-rose-300 border-rose-500/20" 
+        : "bg-rose-50 text-rose-700 border-rose-200",
       strokeColor: "#E11D48",
-      textColor: "text-rose-700",
+      textColor: isDarkMode ? "text-rose-400" : "text-rose-700",
       icon: Flame,
     };
   } else if (stressLevel >= 30) {
@@ -31,9 +35,11 @@ export default function StressGauge({ stressLevel, avgSeverity, toxicCount, tota
       title: "Beban Sedang (Waspada)",
       desc: "Terjadi peningkatan komentar bernada sindiran dan sarkasme.",
       badge: "Waspada",
-      badgeClass: "bg-amber-50 text-amber-700 border-amber-200",
+      badgeClass: isDarkMode 
+        ? "bg-amber-950/30 text-amber-300 border-amber-500/20" 
+        : "bg-amber-50 text-amber-700 border-amber-200",
       strokeColor: "#F59E0B",
-      textColor: "text-amber-700",
+      textColor: isDarkMode ? "text-amber-400" : "text-amber-700",
       icon: AlertTriangle,
     };
   }
@@ -41,15 +47,21 @@ export default function StressGauge({ stressLevel, avgSeverity, toxicCount, tota
   const StatusIcon = statusConfig.icon;
 
   return (
-    <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4">
+    <div className={`p-6 rounded-2xl border transition-all duration-300 space-y-4 ${
+      isDarkMode 
+        ? 'bg-[#0B1522] border-[#16587B]/20 shadow-md' 
+        : 'bg-white border-slate-200/80 shadow-sm'
+    }`}>
       
       {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+      <div className={`flex items-center justify-between pb-3 border-b ${
+        isDarkMode ? 'border-[#16587B]/15' : 'border-slate-100'
+      }`}>
         <div>
-          <h3 className="text-sm font-bold text-slate-900 font-['Plus_Jakarta_Sans']">
+          <h3 className={`text-sm font-bold font-['Plus_Jakarta_Sans'] ${isDarkMode ? 'text-[#F5EEDD]' : 'text-slate-900'}`}>
             Stress-Load Index™
           </h3>
-          <p className="text-[11px] text-slate-500">
+          <p className={`text-[11px] ${isDarkMode ? 'text-[#84B3CE]/60' : 'text-slate-500'}`}>
             Kalkulator Beban Psikologis Pengelola Akun
           </p>
         </div>
@@ -66,7 +78,7 @@ export default function StressGauge({ stressLevel, avgSeverity, toxicCount, tota
               cx="64"
               cy="64"
               r={radius}
-              stroke="#F1F5F9"
+              stroke={isDarkMode ? "#0F243A" : "#F1F5F9"}
               strokeWidth="10"
               fill="transparent"
             />
@@ -85,10 +97,14 @@ export default function StressGauge({ stressLevel, avgSeverity, toxicCount, tota
           </svg>
 
           <div className="absolute text-center">
-            <span className="text-2xl font-extrabold text-slate-900 font-['Plus_Jakarta_Sans'] tracking-tight">
+            <span className={`text-2xl font-extrabold font-['Plus_Jakarta_Sans'] tracking-tight ${
+              isDarkMode ? 'text-white' : 'text-slate-900'
+            }`}>
               {Math.round(stressLevel)}%
             </span>
-            <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">
+            <p className={`text-[9px] font-semibold uppercase tracking-wider ${
+              isDarkMode ? 'text-[#84B3CE]/55' : 'text-slate-400'
+            }`}>
               Beban Stres
             </p>
           </div>
@@ -101,20 +117,24 @@ export default function StressGauge({ stressLevel, avgSeverity, toxicCount, tota
               <StatusIcon className="w-4 h-4" />
               <span>{statusConfig.title}</span>
             </div>
-            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+            <p className={`text-xs mt-1 leading-relaxed ${isDarkMode ? 'text-slate-300' : 'text-slate-500'}`}>
               {statusConfig.desc}
             </p>
           </div>
 
           {/* Minimal Key-Value Details */}
           <div className="grid grid-cols-2 gap-2 pt-1 text-[11px]">
-            <div className="p-2 rounded-xl bg-slate-50 border border-slate-100">
-              <p className="text-slate-400">Rata-rata Severity</p>
-              <p className="font-bold text-slate-800 mt-0.5">{avgSeverity.toFixed(1)} / 10</p>
+            <div className={`p-2 rounded-xl border ${
+              isDarkMode ? 'bg-[#0A2233]/40 border-[#16587B]/15' : 'bg-slate-50 border-slate-100'
+            }`}>
+              <p className={isDarkMode ? 'text-[#84B3CE]/60' : 'text-slate-400'}>Rata-rata Severity</p>
+              <p className={`font-bold mt-0.5 ${isDarkMode ? 'text-[#F5EEDD]' : 'text-slate-800'}`}>{avgSeverity.toFixed(1)} / 10</p>
             </div>
-            <div className="p-2 rounded-xl bg-slate-50 border border-slate-100">
-              <p className="text-slate-400">Komentar Tertahan</p>
-              <p className="font-bold text-slate-800 mt-0.5">{toxicCount} dari {totalComments}</p>
+            <div className={`p-2 rounded-xl border ${
+              isDarkMode ? 'bg-[#0A2233]/40 border-[#16587B]/15' : 'bg-slate-50 border-slate-100'
+            }`}>
+              <p className={isDarkMode ? 'text-[#84B3CE]/60' : 'text-slate-400'}>Komentar Tertahan</p>
+              <p className={`font-bold mt-0.5 ${isDarkMode ? 'text-[#F5EEDD]' : 'text-slate-800'}`}>{toxicCount} dari {totalComments}</p>
             </div>
           </div>
 

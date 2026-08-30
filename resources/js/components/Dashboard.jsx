@@ -18,6 +18,15 @@ export default function Dashboard({ user, onLogout }) {
   const [isRehatModalOpen, setIsRehatModalOpen] = useState(false);
   const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
   const [connectedAccount, setConnectedAccount] = useState(null);
+  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
+
+  const toggleDarkMode = useCallback(() => {
+    setIsDarkMode(prev => {
+      const next = !prev;
+      localStorage.setItem('theme', next ? 'dark' : 'light');
+      return next;
+    });
+  }, []);
 
   // ─── LOAD DATA DARI API ────────────────────────────────────────────────────
   const loadDashboardData = useCallback(async () => {
@@ -177,7 +186,9 @@ export default function Dashboard({ user, onLogout }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex text-slate-800 font-sans">
+    <div className={`min-h-screen flex font-sans transition-all duration-300 ${
+      isDarkMode ? 'bg-[#070F1E] text-slate-100' : 'bg-[#F8FAFC] text-slate-800'
+    }`}>
 
       {/* Sidebar */}
       <Sidebar
@@ -189,6 +200,7 @@ export default function Dashboard({ user, onLogout }) {
         stressLevel={stats.stressLevel}
         user={user}
         onLogout={onLogout}
+        isDarkMode={isDarkMode}
       />
 
       {/* Main Workspace */}
@@ -201,29 +213,41 @@ export default function Dashboard({ user, onLogout }) {
           onOpenConnect={() => setIsSocialModalOpen(true)}
           connectedAccount={connectedAccount || defaultAccount}
           stressLevel={stats.stressLevel}
+          isDarkMode={isDarkMode}
+          toggleDarkMode={toggleDarkMode}
         />
 
         {/* Page Content */}
         <main className="p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">
 
           {/* Welcome Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+          <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-2xl border transition-all duration-300 ${
+            isDarkMode 
+              ? 'bg-[#0B1522] border-[#16587B]/20 shadow-md' 
+              : 'bg-white border-slate-200/80 shadow-xs'
+          }`}>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60">
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded border ${
+                  isDarkMode 
+                    ? 'text-emerald-300 bg-emerald-950/30 border-emerald-500/20' 
+                    : 'text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60'
+                }`}>
                   {user?.plan || 'Creator Pro Tier'}
                 </span>
-                <span className="text-xs text-slate-400">
+                <span className={`text-xs ${isDarkMode ? 'text-[#84B3CE]/60' : 'text-slate-400'}`}>
                   Akun Terpantau:{' '}
-                  <strong className="text-slate-800">
+                  <strong className={isDarkMode ? 'text-[#F5EEDD]' : 'text-slate-800'}>
                     {connectedAccount?.handle || 'Belum ada akun terhubung'}
                   </strong>
                 </span>
               </div>
-              <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 font-['Plus_Jakarta_Sans'] mt-1">
+              <h2 className={`text-lg sm:text-xl font-bold tracking-tight mt-1 font-['Plus_Jakarta_Sans'] ${
+                isDarkMode ? 'text-[#F5EEDD]' : 'text-slate-900'
+              }`}>
                 Selamat Datang, {user?.name || 'Pengguna SABAR'}
               </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className={`text-xs mt-0.5 ${isDarkMode ? 'text-[#84B3CE]/80' : 'text-slate-500'}`}>
                 Sistem aktif menyaring ujaran kebencian & sarkasme secara real-time guna melindungi kenyamanan mental pengelola akun.
               </p>
             </div>
@@ -231,7 +255,11 @@ export default function Dashboard({ user, onLogout }) {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsSocialModalOpen(true)}
-                className="px-3.5 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 border border-slate-200 transition-all"
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${
+                  isDarkMode 
+                    ? 'bg-[#16587B]/30 hover:bg-[#16587B]/50 text-[#F5EEDD] border-[#16587B]/40' 
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                }`}
               >
                 {connectedAccount ? 'Ganti Akun Target' : '+ Hubungkan Akun'}
               </button>
@@ -246,7 +274,7 @@ export default function Dashboard({ user, onLogout }) {
           </div>
 
           {/* Stats Cards */}
-          <StatsCards stats={stats} />
+          <StatsCards stats={stats} isDarkMode={isDarkMode} />
 
           {/* 2-Column: Stress Gauge + Live Analyzer */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -257,10 +285,11 @@ export default function Dashboard({ user, onLogout }) {
                 toxicCount={stats.toxicCount}
                 totalComments={stats.total}
                 onTriggerRehat={() => setIsRehatModalOpen(true)}
+                isDarkMode={isDarkMode}
               />
             </div>
             <div className="lg:col-span-7">
-              <LiveCommentAnalyzer onAddComment={handleAddComment} />
+              <LiveCommentAnalyzer onAddComment={handleAddComment} isDarkMode={isDarkMode} />
             </div>
           </div>
 
@@ -269,13 +298,19 @@ export default function Dashboard({ user, onLogout }) {
             comments={comments}
             onToggleHide={handleToggleHide}
             onDeleteComment={handleDeleteComment}
+            onResetMock={loadDashboardData}
             loading={loadingComments}
+            isDarkMode={isDarkMode}
           />
 
         </main>
 
         {/* Footer */}
-        <footer className="mt-auto py-6 border-t border-slate-200/80 bg-white text-center text-xs text-slate-400">
+        <footer className={`mt-auto py-6 border-t text-center text-xs transition-all duration-300 ${
+          isDarkMode 
+            ? 'border-[#16587B]/20 bg-[#0B1522] text-[#84B3CE]/60' 
+            : 'border-slate-200/80 bg-white text-slate-400'
+        }`}>
           <p>© 2026 SABAR — Sistem Moderation-as-a-Service Berbasis Context-Aware NLP. Lomba KMIPN 2026.</p>
         </footer>
       </div>
