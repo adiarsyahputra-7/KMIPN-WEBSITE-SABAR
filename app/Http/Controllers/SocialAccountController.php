@@ -227,14 +227,6 @@ class SocialAccountController extends Controller
 
     /**
      * ─── YOUTUBE SYNC: Tarik Komentar dari YouTube Data API v3 ──────────────
-     *
-     * Alur:
-     * 1. Pastikan access token masih valid — jika tidak, refresh otomatis.
-     * 2. Ambil video terbaru dari channel.
-     * 3. Untuk setiap video, ambil komentar dan balasannya.
-     * 4. Analisis setiap komentar menggunakan GeminiService.
-     * 5. Simpan ke database dengan label platform = 'youtube'.
-     * 6. Jika toksik, sembunyikan otomatis di YouTube.
      */
     protected function syncYouTube(SocialAccount $socialAccount): \Illuminate\Http\JsonResponse
     {
