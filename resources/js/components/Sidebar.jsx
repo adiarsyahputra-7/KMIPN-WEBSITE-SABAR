@@ -50,10 +50,10 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenRehat, onOpenCo
   ];
 
   return (
-    <aside className="w-64 bg-white border-r border-slate-200/80 flex flex-col h-screen sticky top-0 shrink-0 select-none">
+    <aside className="w-64 bg-gradient-to-b from-[#16587B] via-[#0E3D54] to-[#0A293B] border-r border-[#16587B]/20 flex flex-col h-screen sticky top-0 shrink-0 select-none">
       
       {/* Brand Header */}
-      <div className="h-16 px-5 flex items-center border-b border-slate-100">
+      <div className="h-16 px-5 flex items-center border-b border-[#16587B]/20">
         <SabarLogo 
           variant="full" 
           theme="navy-gold" 
@@ -68,7 +68,7 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenRehat, onOpenCo
       <div className="flex-1 px-3 py-5 overflow-y-auto space-y-6">
         {navigation.map((section, idx) => (
           <div key={idx} className="space-y-1">
-            <p className="px-3 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+            <p className="px-3 text-[10px] font-bold tracking-wider text-[#84B3CE]/60 uppercase">
               {section.group}
             </p>
             {section.items.map((item) => {
@@ -86,20 +86,20 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenRehat, onOpenCo
                   }}
                   className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${
                     isActive
-                      ? 'bg-slate-100 text-slate-900 font-semibold'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                      ? 'bg-white/10 text-[#F5EEDD] font-bold shadow-xs'
+                      : 'text-[#84B3CE]/80 hover:bg-white/5 hover:text-white'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-slate-900' : 'text-slate-400'}`} />
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-[#F5EEDD]' : 'text-[#84B3CE]/60'}`} />
                     <span>{item.label}</span>
                   </div>
 
                   {item.badge && (
                     <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${
                       item.badgeAlert
-                        ? 'bg-rose-100 text-rose-700 animate-pulse'
-                        : 'bg-slate-100 text-slate-600'
+                        ? 'bg-rose-500/25 text-rose-300 border border-rose-500/30 animate-pulse'
+                        : 'bg-white/10 text-[#84B3CE] border border-white/5'
                     }`}>
                       {item.badge}
                     </span>
@@ -112,17 +112,17 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenRehat, onOpenCo
       </div>
 
       {/* Connected Account Mini Pill */}
-      <div className="p-3 mx-3 mb-3 rounded-xl bg-slate-50 border border-slate-200/70">
+      <div className="p-3 mx-3 mb-3 rounded-xl bg-[#082230]/60 border border-[#16587B]/20">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-            <span className="text-[11px] font-medium text-slate-700 truncate max-w-[130px]">
+            <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
+            <span className="text-[11px] font-medium text-[#F5EEDD]/95 truncate max-w-[130px]">
               {connectedAccount?.handle || "@sabar_brand"}
             </span>
           </div>
           <button 
             onClick={onOpenConnect}
-            className="text-[10px] font-semibold text-emerald-700 hover:text-emerald-800"
+            className="text-[10px] font-bold text-[#84B3CE] hover:text-[#F5EEDD]"
           >
             Ubah
           </button>
@@ -130,22 +130,22 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenRehat, onOpenCo
       </div>
 
       {/* User Footer Profile */}
-      <div className="p-4 border-t border-slate-100 flex items-center justify-between bg-white">
+      <div className="p-4 border-t border-[#16587B]/20 flex items-center justify-between bg-[#071E2B]">
         <div className="flex items-center gap-2.5">
           <img
             src={user?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"}
             alt={user?.name || "Kalyca Kyla"}
-            className="w-8 h-8 rounded-full object-cover border border-slate-200"
+            className="w-8 h-8 rounded-full object-cover border border-[#16587B]/30"
           />
           <div className="text-left">
-            <p className="text-xs font-semibold text-slate-800">{user?.name || "Kalyca Kyla"}</p>
-            <p className="text-[10px] text-slate-400">{user?.role || "Social Media Lead"}</p>
+            <p className="text-xs font-semibold text-white">{user?.name || "Kalyca Kyla"}</p>
+            <p className="text-[10px] text-[#84B3CE]/70">{user?.role || "Social Media Lead"}</p>
           </div>
         </div>
         <button 
           onClick={onLogout}
           title="Keluar (Logout)"
-          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+          className="p-1.5 text-[#84B3CE]/60 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all"
         >
           <LogOut className="w-4 h-4" />
         </button>

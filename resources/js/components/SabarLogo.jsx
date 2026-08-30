@@ -45,18 +45,21 @@ export default function SabarLogo({
   // 3. 'gradient': Gradient mewah gabungan Emerald & Gold
   let bgClass = 'bg-[#0B1D33] border border-[#F4EAD2]/20 shadow-sm';
   let strokeColor = '#F4EAD2';
-  let titleColor = 'text-slate-900';
-  let badgeClass = 'bg-amber-50 text-amber-800 border-amber-200/70';
+  let titleColor = 'text-[#F4EAD2]'; // Emas khas brand SABAR
+  let subtitleColor = 'text-[#F4EAD2]/65';
+  let badgeClass = 'bg-amber-500/10 text-amber-300 border-amber-500/30';
 
   if (theme === 'slate-emerald') {
     bgClass = 'bg-slate-900 border border-emerald-500/20 shadow-sm';
     strokeColor = '#34D399'; // Emerald-400
-    titleColor = 'text-slate-900';
-    badgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200/60';
+    titleColor = 'text-emerald-400';
+    subtitleColor = 'text-slate-400';
+    badgeClass = 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30';
   } else if (theme === 'gradient') {
     bgClass = 'bg-gradient-to-br from-[#0B1D33] via-[#0F294A] to-[#0A1628] border border-amber-400/30 shadow-md';
     strokeColor = 'url(#sabarGoldGrad)';
-    titleColor = 'text-slate-900';
+    titleColor = 'text-white';
+    subtitleColor = 'text-slate-300';
     badgeClass = 'bg-gradient-to-r from-amber-400 to-emerald-400 text-slate-950 font-bold';
   }
 
@@ -91,7 +94,7 @@ export default function SabarLogo({
           )}
         </div>
         {showSubtitle && (
-          <p className="text-[11px] text-slate-400 truncate max-w-[170px]" title="Sistem Analisis Bullying & Asisten Rehat">
+          <p className={`text-[11px] ${subtitleColor} truncate max-w-[170px]`} title="Sistem Analisis Bullying & Asisten Rehat">
             Sistem Analisis Bullying & Rehat
           </p>
         )}
