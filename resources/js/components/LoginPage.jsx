@@ -4,7 +4,6 @@ import {
   Eye,
   EyeOff,
   ArrowRight,
-  Sparkles,
   Lock,
   Mail,
   Zap,
@@ -89,29 +88,35 @@ export default function LoginPage({ onLogin }) {
   return (
     <div className="min-h-screen w-full flex flex-col md:flex-row bg-white font-sans overflow-hidden">
 
-      {/* ── Left Pane: Brand Banner (Menggunakan Poster Asli Sabar) ────────────────── */}
+      {/* ── Left Pane: Brand Presentation Banner ────────────────────────────── */}
       <div 
-        className="w-full md:w-[50%] lg:w-[52%] bg-[#0B1D33] relative min-h-[480px] md:min-h-screen shrink-0 flex flex-col justify-between p-8 sm:p-14 lg:p-20 overflow-hidden"
-        style={{
-          backgroundImage: "url('/sabar-logo-full.jpg')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
+        className="w-full md:w-[50%] lg:w-[52%] bg-[#0B1D33] relative min-h-[500px] md:min-h-screen shrink-0 flex flex-col justify-between p-8 sm:p-14 lg:p-20 overflow-hidden"
       >
-        {/* Subtle dark overlay to match the high premium vibe */}
-        <div className="absolute inset-0 bg-black/5 pointer-events-none" />
+        {/* Decorative background glow & subtle grid pattern */}
+        <div className="absolute inset-0 pointer-events-none" style={{
+          background: 'radial-gradient(circle at 30% 40%, rgba(22, 87, 123, 0.35) 0%, rgba(11, 29, 51, 0.95) 70%)'
+        }} />
+        <div className="absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-[#16587B]/20 blur-3xl pointer-events-none" />
 
-        {/* Top Header Badge */}
-        <div className="relative z-10 self-start">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-xs text-[#F4EAD2] font-medium tracking-wide">
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            <span>KMIPN 2026 · Official System</span>
+        {/* Top Brand Header */}
+        <div className="relative z-10 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <SabarLogo variant="icon" size="sm" theme="navy-gold" />
+            <span className="text-xl font-extrabold tracking-wider font-['Plus_Jakarta_Sans'] text-[#F4EAD2]">
+              SABAR
+            </span>
           </div>
         </div>
 
-        {/* Bottom Metadata */}
-        <div className="relative z-10 mt-auto text-xs text-[#F4EAD2]/60 font-medium">
-          SABAR · Sistem Analisis Bullying & Asisten Rehat
+        {/* Center Hero Presentation Text */}
+        <div className="relative z-10 my-auto space-y-6 py-10 max-w-lg">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold font-['Plus_Jakarta_Sans'] tracking-tight leading-[1.15] text-[#F4EAD2]">
+            Sistem Analisis Bullying &amp; Asisten Rehat
+          </h1>
+
+          <p className="text-sm sm:text-base text-[#84B3CE] leading-relaxed font-light">
+            Mencegat narasi negatif secara real-time demi ruang kerja digital yang lebih humanis, sehat, dan berkelanjutan.
+          </p>
         </div>
       </div>
 
