@@ -133,25 +133,15 @@ export default function LoginPage({ onLogin, onClose }) {
       {/* ── Right Pane: Form ─────────────────────────────────────────────────── */}
       <div className="w-full md:w-[50%] lg:w-[48%] p-8 sm:p-14 lg:p-20 flex flex-col justify-between bg-white min-h-screen overflow-y-auto relative">
 
-        {/* Top Bar: Button Kembali ke Beranda (Mobile & Desktop) */}
-        <div className="flex items-center justify-between pb-4">
+        {/* Top Bar: Close Button */}
+        <div className="flex items-center justify-end pb-2">
           <button
             onClick={() => onClose ? onClose() : (window.location.href = '/')}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all duration-200 cursor-pointer border border-slate-200 hover:border-slate-300"
+            className="p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+            title="Tutup & Kembali ke Beranda"
           >
-            <ArrowLeft className="w-4 h-4 text-[#16587B]" />
-            <span>Kembali ke Beranda</span>
+            <X className="w-5 h-5" />
           </button>
-
-          {onClose && (
-            <button
-              onClick={onClose}
-              className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
-              title="Tutup Modal"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          )}
         </div>
 
         <div className="max-w-md w-full mx-auto my-auto space-y-7">
