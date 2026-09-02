@@ -4,6 +4,8 @@ import {
   Eye,
   EyeOff,
   ArrowRight,
+  ArrowLeft,
+  X,
   Lock,
   Mail,
   Zap,
@@ -98,7 +100,7 @@ export default function LoginPage({ onLogin, onClose }) {
         }} />
         <div className="absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-[#16587B]/20 blur-3xl pointer-events-none" />
 
-        {/* Top Brand Header */}
+        {/* Top Brand Header & Back Button */}
         <div className="relative z-10 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <SabarLogo variant="icon" size="sm" theme="navy-gold" />
@@ -106,6 +108,14 @@ export default function LoginPage({ onLogin, onClose }) {
               SABAR
             </span>
           </div>
+
+          <button
+            onClick={() => onClose ? onClose() : (window.location.href = '/')}
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#16587B]/40 hover:bg-[#16587B]/70 border border-[#84B3CE]/30 text-[#F4EAD2] text-xs font-semibold transition-all duration-300 hover:scale-105 cursor-pointer"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 text-[#84B3CE]" />
+            <span>Kembali ke Beranda</span>
+          </button>
         </div>
 
         {/* Center Hero Presentation Text */}
@@ -121,7 +131,28 @@ export default function LoginPage({ onLogin, onClose }) {
       </div>
 
       {/* ── Right Pane: Form ─────────────────────────────────────────────────── */}
-      <div className="w-full md:w-[50%] lg:w-[48%] p-8 sm:p-14 lg:p-20 flex flex-col justify-between bg-white min-h-screen overflow-y-auto">
+      <div className="w-full md:w-[50%] lg:w-[48%] p-8 sm:p-14 lg:p-20 flex flex-col justify-between bg-white min-h-screen overflow-y-auto relative">
+
+        {/* Top Bar: Button Kembali ke Beranda (Mobile & Desktop) */}
+        <div className="flex items-center justify-between pb-4">
+          <button
+            onClick={() => onClose ? onClose() : (window.location.href = '/')}
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all duration-200 cursor-pointer border border-slate-200 hover:border-slate-300"
+          >
+            <ArrowLeft className="w-4 h-4 text-[#16587B]" />
+            <span>Kembali ke Beranda</span>
+          </button>
+
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+              title="Tutup Modal"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
+        </div>
 
         <div className="max-w-md w-full mx-auto my-auto space-y-7">
 
