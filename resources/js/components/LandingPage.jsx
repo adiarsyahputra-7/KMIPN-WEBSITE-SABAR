@@ -274,38 +274,86 @@ export default function LandingPage({ onLoginClick }) {
 
       {/* ── HERO SECTION ── */}
       <main className="relative overflow-hidden">
-        {/* Ambient Glow Background */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {/* ── Ambient Glow & Glowing Shield Background ── */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden select-none">
+          {/* Top Spotlight Beam */}
           <div
-            className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[600px] rounded-full opacity-20"
+            className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[550px] opacity-35"
             style={{
-              background: `radial-gradient(ellipse at center, ${COLORS.vBlue} 0%, transparent 70%)`,
-              filter: 'blur(80px)',
+              background: `radial-gradient(ellipse at 50% 0%, ${COLORS.rockBlue}40 0%, ${COLORS.vBlue}25 45%, transparent 80%)`,
+              filter: 'blur(50px)',
+            }}
+          />
+
+          {/* Glowing Ambient Light Orbs */}
+          <div
+            className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full opacity-20 animate-pulse"
+            style={{
+              background: `radial-gradient(circle, ${COLORS.merino}30 0%, ${COLORS.vBlue}50 40%, transparent 70%)`,
+              filter: 'blur(90px)',
+              animationDuration: '6s',
             }}
           />
           <div
-            className="absolute top-32 -left-32 w-[500px] h-[500px] rounded-full opacity-10"
+            className="absolute top-40 -left-40 w-[550px] h-[550px] rounded-full opacity-15"
             style={{
               background: `radial-gradient(ellipse at center, ${COLORS.rockBlue} 0%, transparent 70%)`,
-              filter: 'blur(60px)',
+              filter: 'blur(70px)',
             }}
           />
           <div
-            className="absolute top-48 -right-32 w-[400px] h-[400px] rounded-full opacity-10"
+            className="absolute top-60 -right-40 w-[550px] h-[550px] rounded-full opacity-15"
             style={{
               background: `radial-gradient(ellipse at center, ${COLORS.vBlue} 0%, transparent 70%)`,
-              filter: 'blur(60px)',
+              filter: 'blur(70px)',
             }}
           />
-          {/* Grid Pattern */}
+
+          {/* Central SABAR Shield Silhouette Aura (Perisai Proteksi Transparan) */}
+          <div className="absolute top-24 left-1/2 -translate-x-1/2 w-[340px] h-[380px] sm:w-[460px] sm:h-[500px] lg:w-[540px] lg:h-[580px] opacity-15 flex items-center justify-center">
+            <svg
+              viewBox="0 0 100 110"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-full h-full drop-shadow-[0_0_35px_rgba(132,179,206,0.5)]"
+            >
+              <defs>
+                <linearGradient id="shieldHeroGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#F4EAD2" stopOpacity="0.8" />
+                  <stop offset="50%" stopColor="#84B3CE" stopOpacity="0.5" />
+                  <stop offset="100%" stopColor="#16587B" stopOpacity="0.2" />
+                </linearGradient>
+                <linearGradient id="shieldHeroBorder" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#F4EAD2" stopOpacity="0.6" />
+                  <stop offset="100%" stopColor="#84B3CE" stopOpacity="0.1" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M50 5 C62 5, 84 10, 88 18 C92 35, 92 60, 50 102 C8 60, 8 35, 12 18 C16 10, 38 5, 50 5 Z"
+                fill="url(#shieldHeroGlow)"
+                stroke="url(#shieldHeroBorder)"
+                strokeWidth="1.5"
+              />
+              <path
+                d="M 50,14 C 40,24 30,35 24,52 C 20,64 24,78 34,86 C 42,92 50,96 50,96 C 50,96 42,88 38,76 C 35,66 38,54 44,44 Z"
+                fill="#F4EAD2"
+                fillOpacity="0.25"
+              />
+            </svg>
+          </div>
+
+          {/* Cyber Grid Mesh Pattern dengan Gradient Fade */}
           <div
-            className="absolute inset-0 opacity-[0.03]"
+            className="absolute inset-0 opacity-[0.06]"
             style={{
               backgroundImage: `linear-gradient(${COLORS.rockBlue} 1px, transparent 1px), linear-gradient(90deg, ${COLORS.rockBlue} 1px, transparent 1px)`,
-              backgroundSize: '60px 60px',
+              backgroundSize: '50px 50px',
+              maskImage: 'radial-gradient(ellipse 75% 65% at 50% 35%, black 40%, transparent 100%)',
+              WebkitMaskImage: 'radial-gradient(ellipse 75% 65% at 50% 35%, black 40%, transparent 100%)',
             }}
           />
         </div>
+
 
         {/* ── Hero Content ── */}
         <section className="relative pt-32 pb-20 md:pt-44 md:pb-32">
