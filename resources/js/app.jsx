@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import Dashboard from './components/Dashboard';
 import LoginPage from './components/LoginPage';
+import LandingPage from './components/LandingPage';
 import OAuthToast from './components/OAuthToast';
 import api from './api';
 import '../css/app.css';
@@ -100,7 +101,34 @@ function App() {
 
   // ─── ROUTING SEDERHANA ─────────────────────────────────────────────────────
   if (!user) {
-    return <LoginPage onLogin={(userData) => setUser(userData)} />;
+    return (
+      <LandingPage
+        onLoginClick={() => {
+          // Mount LoginPage di atas LandingPage
+          const overlay = document.createElement('div');
+          overlay.id = 'login-overlay';
+          overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(6,14,26,0.7);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;';
+          document.body.appendChild(overlay);
+
+          const root = ReactDOM.createRoot(overlay);
+          root.render(
+            <React.StrictMode>
+              <LoginPage
+                onLogin={(userData) => {
+                  setUser(userData);
+                  root.unmount();
+                  overlay.remove();
+                }}
+                onClose={() => {
+                  root.unmount();
+                  overlay.remove();
+                }}
+              />
+            </React.StrictMode>
+          );
+        }}
+      />
+    );
   }
 
   return (

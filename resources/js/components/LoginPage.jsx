@@ -13,7 +13,7 @@ import {
 import api from '../api';
 import SabarLogo from './SabarLogo';
 
-export default function LoginPage({ onLogin }) {
+export default function LoginPage({ onLogin, onClose }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('kalyca@sabar.com');
   const [password, setPassword] = useState('password');
