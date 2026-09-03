@@ -16,6 +16,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { Button } from './ui/Button';
+import PricingPage from './PricingPage';
 import { cn } from '../lib/utils';
 
 // ─── CUSTOM SOCIAL ICONS ───────────────────────────────────────────────────
@@ -75,11 +76,12 @@ const menuItems = [
   { name: 'Fitur', href: '#fitur' },
   { name: 'Cara Kerja', href: '#cara-kerja' },
   { name: 'Demo AI', href: '#demo' },
+  { name: 'Harga', href: '#harga' },
   { name: 'Tentang', href: '#tentang' },
 ];
 
 // ─── KOMPONEN HERO HEADER (Navbar Cerah & Kontras) ─────────────────────────
-const HeroHeader = ({ onLoginClick }) => {
+const HeroHeader = ({ onLoginClick, onPricingClick }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -113,12 +115,21 @@ const HeroHeader = ({ onLoginClick }) => {
           <ul className="hidden lg:flex items-center gap-8">
             {menuItems.map((item) => (
               <li key={item.name}>
-                <a
-                  href={item.href}
-                  className="text-sm font-semibold text-[#16587B]/80 hover:text-[#16587B] transition-colors duration-200"
-                >
-                  {item.name}
-                </a>
+                {item.name === 'Harga' ? (
+                  <button
+                    onClick={onPricingClick}
+                    className="text-sm font-semibold text-[#16587B]/80 hover:text-[#16587B] transition-colors duration-200 cursor-pointer bg-transparent border-none p-0"
+                  >
+                    {item.name}
+                  </button>
+                ) : (
+                  <a
+                    href={item.href}
+                    className="text-sm font-semibold text-[#16587B]/80 hover:text-[#16587B] transition-colors duration-200"
+                  >
+                    {item.name}
+                  </a>
+                )}
               </li>
             ))}
           </ul>
@@ -162,14 +173,24 @@ const HeroHeader = ({ onLoginClick }) => {
             className="lg:hidden border-t border-[#16587B]/15 mt-3 pt-3 pb-2 space-y-3"
           >
             {menuItems.map((item) => (
-              <a
-                key={item.name}
-                href={item.href}
-                onClick={() => setMenuOpen(false)}
-                className="block text-sm font-semibold text-[#16587B] hover:text-[#0e3f59] py-1 px-2"
-              >
-                {item.name}
-              </a>
+              item.name === 'Harga' ? (
+                <button
+                  key={item.name}
+                  onClick={() => { setMenuOpen(false); onPricingClick(); }}
+                  className="block w-full text-left text-sm font-semibold text-[#16587B] hover:text-[#0e3f59] py-1 px-2 bg-transparent border-none cursor-pointer"
+                >
+                  {item.name}
+                </button>
+              ) : (
+                <a
+                  key={item.name}
+                  href={item.href}
+                  onClick={() => setMenuOpen(false)}
+                  className="block text-sm font-semibold text-[#16587B] hover:text-[#0e3f59] py-1 px-2"
+                >
+                  {item.name}
+                </a>
+              )
             ))}
             <div className="flex gap-3 pt-2">
               <Button variant="outline" size="sm" onClick={onLoginClick} className="flex-1 font-bold border-[#16587B]/30 text-[#16587B]">
@@ -262,13 +283,25 @@ const testimonials = [
 
 // ─── MAIN LANDING PAGE ─────────────────────────────────────────────────────
 export default function LandingPage({ onLoginClick }) {
+  const [currentPage, setCurrentPage] = useState('landing');
+
+  // Tampilkan halaman Pricing jika state aktif
+  if (currentPage === 'pricing') {
+    return (
+      <PricingPage
+        onLoginClick={onLoginClick}
+        onBackClick={() => setCurrentPage('landing')}
+      />
+    );
+  }
+
   return (
     <div
       className="min-h-screen overflow-x-hidden font-sans text-slate-800"
       style={{ backgroundColor: COLORS.bg }}
     >
       {/* ── Navbar ── */}
-      <HeroHeader onLoginClick={onLoginClick} />
+      <HeroHeader onLoginClick={onLoginClick} onPricingClick={() => setCurrentPage('pricing')} />
 
       {/* ── HERO SECTION ── */}
       <main className="relative overflow-hidden">
