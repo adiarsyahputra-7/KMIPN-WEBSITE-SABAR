@@ -1,5 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import NumberFlow from '@number-flow/react';
 import {
   Shield,
   CheckCircle2,
@@ -7,15 +8,12 @@ import {
   Check,
   ArrowRight,
   Zap,
-  Users,
-  BarChart2,
   Clock,
   Headphones,
   Star,
   ChevronLeft,
 } from 'lucide-react';
 import { Card, CardContent, CardFooter } from './ui/Card';
-import { Button } from './ui/Button';
 import { cn } from '../lib/utils';
 
 // ─── PALET WARNA SABAR ────────────────────────────────────────────────────
@@ -36,10 +34,10 @@ const plans = [
     id: 'starter',
     name: 'Starter',
     tagline: 'Kreator pemula & individu',
+    isFree: true,
     monthlyPrice: 0,
     yearlyPrice: 0,
-    priceLabel: 'Gratis selamanya',
-    yearlyLabel: 'Gratis selamanya',
+    priceLabel: '/ selamanya',
     trialBadge: '✦ 30 hari akses Pro gratis',
     buttonText: 'Mulai Gratis',
     popular: false,
@@ -58,6 +56,7 @@ const plans = [
     id: 'pro',
     name: 'Pro',
     tagline: 'Influencer & kreator profesional',
+    isFree: false,
     monthlyPrice: 59000,
     yearlyPrice: 499000,
     originalMonthlyPrice: 99000,
@@ -80,6 +79,7 @@ const plans = [
     id: 'agency',
     name: 'Agency',
     tagline: 'Agensi & brand korporat',
+    isFree: false,
     monthlyPrice: 299000,
     yearlyPrice: 2499000,
     originalMonthlyPrice: 799000,
@@ -95,70 +95,62 @@ const plans = [
       { text: 'Manajemen tim & role akses', active: true },
       { text: 'Laporan white-label untuk klien', active: true },
       { text: 'Priority support & account manager', active: true },
-      { text: 'Unlimited komentar', active: true },
+      { text: 'Fitur update lainnya', active: true },
     ],
   },
 ];
 
 // ─── FORMAT RUPIAH ────────────────────────────────────────────────────────
 const formatRupiah = (num) => {
-  if (num === 0) return 'Rp 0';
-  return 'Rp ' + num.toLocaleString('id-ID');
+  if (num === 0) return '0';
+  return num.toLocaleString('id-ID');
 };
 
-// ─── TOGGLE SWITCH ────────────────────────────────────────────────────────
-const PricingSwitch = ({ isYearly, onSwitch }) => {
+// ─── PRICING SWITCH COMPONENT (Sesuai Referensi Asli dengan layoutId Spring) ─
+const PricingSwitch = ({ isYearly, onSwitch, className }) => {
   return (
-    <div className="flex justify-center">
-      <div
-        className="relative flex rounded-full border p-1"
-        style={{
-          backgroundColor: COLORS.bg,
-          borderColor: COLORS.bgBorder,
-          boxShadow: '0 2px 12px rgba(22,88,123,0.08)',
-        }}
-      >
-        {/* Sliding Indicator */}
-        <motion.span
-          layout
-          layoutId="pricing-switch"
-          className="absolute top-1 h-[calc(100%-8px)] rounded-full"
-          style={{
-            background: `linear-gradient(135deg, ${COLORS.vBlue} 0%, #1D6C96 100%)`,
-            boxShadow: '0 4px 14px rgba(22,88,123,0.3)',
-            width: 'calc(50% - 4px)',
-            left: isYearly ? 'calc(50%)' : '4px',
-          }}
-          transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-        />
-
+    <div className={cn('flex justify-center', className)}>
+      <div className="relative z-10 mx-auto flex w-fit rounded-full bg-white/95 border border-[#16587B]/20 p-1 shadow-sm backdrop-blur-md">
+        {/* Tombol Bulanan */}
         <button
+          type="button"
           onClick={() => onSwitch(false)}
           className={cn(
-            'relative z-10 px-6 py-2.5 rounded-full text-sm font-bold transition-colors duration-300 cursor-pointer',
-            !isYearly ? 'text-white' : 'text-[#4F7085] hover:text-[#16587B]'
+            'relative z-10 w-fit sm:h-12 cursor-pointer h-10 rounded-full sm:px-6 px-4 sm:py-2 py-1 font-bold text-sm transition-colors duration-200 flex items-center justify-center',
+            !isYearly ? 'text-[#16587B]' : 'text-gray-500 hover:text-[#16587B]'
           )}
         >
-          Bulanan
+          {!isYearly && (
+            <motion.span
+              layoutId="switch"
+              className="absolute inset-0 rounded-full border-2 border-neutral-300 shadow-sm bg-gradient-to-t from-neutral-100 via-neutral-200 to-white"
+              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+            />
+          )}
+          <span className="relative z-10">Bulanan</span>
         </button>
 
+        {/* Tombol Tahunan */}
         <button
+          type="button"
           onClick={() => onSwitch(true)}
           className={cn(
-            'relative z-10 flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold transition-colors duration-300 cursor-pointer',
-            isYearly ? 'text-white' : 'text-[#4F7085] hover:text-[#16587B]'
+            'relative z-10 w-fit cursor-pointer sm:h-12 h-10 flex-shrink-0 rounded-full sm:px-6 px-4 sm:py-2 py-1 font-bold text-sm transition-colors duration-200 flex items-center justify-center gap-2',
+            isYearly ? 'text-[#16587B]' : 'text-gray-500 hover:text-[#16587B]'
           )}
         >
-          Tahunan
-          <span
-            className={cn(
-              'rounded-full px-2 py-0.5 text-[10px] font-extrabold transition-colors duration-300',
-              isYearly
-                ? 'bg-white/25 text-white'
-                : 'bg-[#84B3CE]/20 text-[#16587B]'
-            )}
-          >
-            Hemat 30%
+          {isYearly && (
+            <motion.span
+              layoutId="switch"
+              className="absolute inset-0 rounded-full border-2 border-neutral-300 shadow-sm bg-gradient-to-t from-neutral-100 via-neutral-200 to-white"
+              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+            />
+          )}
+          <span className="relative z-10 flex items-center gap-2">
+            Tahunan
+            <span className="rounded-full bg-[#16587B]/10 border border-[#16587B]/20 px-2 py-0.5 text-xs font-extrabold text-[#16587B]">
+              Save 20%
+            </span>
           </span>
         </button>
       </div>
@@ -167,27 +159,20 @@ const PricingSwitch = ({ isYearly, onSwitch }) => {
 };
 
 // ─── KARTU PAKET ──────────────────────────────────────────────────────────
-const PlanCard = ({ plan, isYearly, onLoginClick, index }) => {
+const PlanCard = ({ plan, isYearly, onLoginClick }) => {
   const isPopular = plan.popular;
   const price = isYearly ? plan.yearlyPrice : plan.monthlyPrice;
   const originalPrice = isYearly ? plan.originalYearlyPrice : plan.originalMonthlyPrice;
-  const priceLabel = isYearly ? '/ tahun' : (plan.id === 'starter' ? '' : '/ bulan');
-
-  const cardVariants = {
-    hidden: { opacity: 0, y: 40 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { delay: index * 0.12, duration: 0.5, ease: [0.22, 1, 0.36, 1] },
-    },
-  };
+  const priceLabel = plan.isFree ? '/ selamanya' : isYearly ? '/ tahun' : '/ bulan';
 
   return (
     <motion.div
-      variants={cardVariants}
-      initial="hidden"
-      animate="visible"
-      className={cn('relative', isPopular && 'lg:-mt-4 lg:mb-0')}
+      layout
+      initial={{ opacity: 0, scale: 0.92, y: 24 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.9, y: -20 }}
+      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      className={cn('relative flex flex-col', isPopular && 'lg:-mt-4 lg:mb-0')}
     >
       <Card
         className={cn(
@@ -244,31 +229,30 @@ const PlanCard = ({ plan, isYearly, onLoginClick, index }) => {
           {/* Price Display */}
           <div className="mb-5">
             {/* Original Price (coret) */}
-            {originalPrice && plan.id !== 'starter' && (
+            {originalPrice && !plan.isFree && (
               <p
                 className="text-sm line-through font-medium mb-0.5"
                 style={{ color: isPopular ? `${COLORS.rockBlue}80` : '#AAB8C2' }}
               >
-                {formatRupiah(originalPrice)}
+                Rp {formatRupiah(originalPrice)}
               </p>
             )}
-            <div className="flex items-baseline gap-1.5">
-              <AnimatePresence mode="wait">
-                <motion.span
-                  key={`${plan.id}-${isYearly}`}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  transition={{ duration: 0.25 }}
-                  className="text-4xl font-extrabold font-['Plus_Jakarta_Sans']"
-                  style={{ color: isPopular ? '#FFFFFF' : COLORS.textHeading }}
-                >
-                  {plan.id === 'starter' ? 'Rp 0' : formatRupiah(price)}
-                </motion.span>
-              </AnimatePresence>
+            <div className="flex items-baseline gap-1">
+              <span
+                className="text-2xl sm:text-3xl font-extrabold font-['Plus_Jakarta_Sans']"
+                style={{ color: isPopular ? '#FFFFFF' : COLORS.textHeading }}
+              >
+                Rp
+              </span>
+              <NumberFlow
+                value={price}
+                format={{ maximumFractionDigits: 0 }}
+                className="text-4xl sm:text-5xl font-extrabold font-['Plus_Jakarta_Sans']"
+                style={{ color: isPopular ? '#FFFFFF' : COLORS.textHeading }}
+              />
               {priceLabel && (
                 <span
-                  className="text-sm font-semibold"
+                  className="text-sm font-semibold ml-1.5"
                   style={{ color: isPopular ? `${COLORS.rockBlue}CC` : COLORS.textBody }}
                 >
                   {priceLabel}
@@ -387,6 +371,9 @@ const PlanCard = ({ plan, isYearly, onLoginClick, index }) => {
 export default function PricingPage({ onLoginClick, onBackClick }) {
   const [isYearly, setIsYearly] = useState(false);
 
+  // Ketika di-switch ke Tahunan, paket gratis (Starter) disembunyikan
+  const visiblePlans = isYearly ? plans.filter((p) => !p.isFree) : plans;
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -454,18 +441,6 @@ export default function PricingPage({ onLoginClick, onBackClick }) {
         >
           {/* Heading */}
           <motion.div variants={fadeUp} className="space-y-3">
-            {/* Badge */}
-            <div
-              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold border"
-              style={{
-                backgroundColor: 'rgba(22,88,123,0.07)',
-                borderColor: COLORS.bgBorder,
-                color: COLORS.vBlue,
-              }}
-            >
-              <Shield className="w-3.5 h-3.5" />
-              Harga Transparan, Tanpa Biaya Tersembunyi
-            </div>
 
             <h1
               className="text-4xl sm:text-5xl font-extrabold font-['Plus_Jakarta_Sans'] leading-tight"
@@ -504,54 +479,41 @@ export default function PricingPage({ onLoginClick, onBackClick }) {
             </p>
           </motion.div>
 
-          {/* Pricing Switch (Desktop: kanan atas, Mobile: di bawah heading) */}
+          {/* Pricing Switch (Sesuai Referensi) */}
           <motion.div variants={fadeUp} className="shrink-0">
             <PricingSwitch isYearly={isYearly} onSwitch={setIsYearly} />
           </motion.div>
         </motion.div>
 
-        {/* ── Grid Kartu Paket ── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-start">
-          {plans.map((plan, index) => (
-            <PlanCard
-              key={plan.id}
-              plan={plan}
-              isYearly={isYearly}
-              onLoginClick={onLoginClick}
-              index={index}
-            />
-          ))}
-        </div>
+        {/* ── Grid Kartu Paket (3 kolom di Bulanan, 2 kolom berpusat di Tahunan) ── */}
+        <motion.div
+          layout
+          className={cn(
+            'grid gap-6 lg:gap-8 items-stretch transition-all duration-500',
+            isYearly
+              ? 'grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto'
+              : 'grid-cols-1 md:grid-cols-3 max-w-7xl mx-auto'
+          )}
+        >
+          <AnimatePresence mode="popLayout">
+            {visiblePlans.map((plan) => (
+              <PlanCard
+                key={plan.id}
+                plan={plan}
+                isYearly={isYearly}
+                onLoginClick={onLoginClick}
+              />
+            ))}
+          </AnimatePresence>
+        </motion.div>
 
         {/* ── Trust Signals ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7, duration: 0.5 }}
+          transition={{ delay: 0.5, duration: 0.5 }}
           className="mt-16 flex flex-col items-center gap-5"
         >
-          {/* Stars Row */}
-          <div className="flex items-center gap-1.5">
-            {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                className="w-5 h-5 fill-current"
-                style={{ color: '#F5C843' }}
-              />
-            ))}
-            <span
-              className="ml-2 text-sm font-bold"
-              style={{ color: COLORS.textHeading }}
-            >
-              4.9/5
-            </span>
-            <span
-              className="text-sm font-medium"
-              style={{ color: COLORS.textBody }}
-            >
-              dari 1.200+ kreator aktif
-            </span>
-          </div>
 
           {/* Trust Badges */}
           <div className="flex flex-wrap justify-center gap-4">
