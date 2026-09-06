@@ -104,9 +104,12 @@ const HeroHeader = ({ onLoginClick, onPricingClick }) => {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <a href="#" className="flex items-center gap-2.5 group">
-            <div className="relative w-8 h-8 rounded-xl bg-[#16587B] flex items-center justify-center shadow-md shadow-[#16587B]/30 group-hover:scale-105 transition-transform">
-              <Shield className="w-4 h-4 text-[#F5EEDD]" />
-              <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#84B3CE] border-2 border-white" />
+            <div className="relative w-8 h-8 rounded-xl overflow-hidden shadow-md shadow-[#16587B]/25 group-hover:scale-105 transition-transform flex items-center justify-center border border-[#16587B]/20 bg-[#1a4065]">
+              <img 
+                src="/sabar-logo-cropped.png" 
+                alt="Logo SABAR" 
+                className="w-full h-full object-cover" 
+              />
             </div>
             <span className="text-lg font-extrabold tracking-wider text-[#16587B] font-['Plus_Jakarta_Sans']">SABAR</span>
           </a>
@@ -701,8 +704,12 @@ export default function LandingPage({ onLoginClick }) {
           <div className="mx-auto max-w-7xl px-6 relative z-10">
             {/* Top Brand & Tagline Header */}
             <div className="flex items-center gap-3 mb-12">
-              <div className="w-10 h-10 rounded-xl bg-[#16587B] border border-[#84B3CE]/30 flex items-center justify-center shadow-md">
-                <Shield className="w-5 h-5 text-[#F5EEDD]" />
+              <div className="w-10 h-10 rounded-xl overflow-hidden border border-[#84B3CE]/30 flex items-center justify-center shadow-md bg-[#1a4065]">
+                <img 
+                  src="/sabar-logo-cropped.png" 
+                  alt="Logo SABAR" 
+                  className="w-full h-full object-cover" 
+                />
               </div>
               <div>
                 <span className="text-2xl font-extrabold tracking-wider text-[#F5EEDD] font-['Plus_Jakarta_Sans']">
