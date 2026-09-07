@@ -82,7 +82,7 @@ export default function Footer({ onLoginClick }) {
               </h4>
               <ul className="space-y-2.5 text-xs text-[#CFE2ED]">
                 <li><a href="#fitur" className="hover:text-white transition-colors">Deteksi Cyberbullying</a></li>
-                <li><a href="#fitur" className="hover:text-white transition-colors">Asisten Rehat Mental</a></li>
+                <li><a href="#fitur" className="hover:text-white transition-colors">Perlindungan Kreator</a></li>
                 <li><a href="#cara-kerja" className="hover:text-white transition-colors">Moderasi Instagram</a></li>
                 <li><a href="#cara-kerja" className="hover:text-white transition-colors">Moderasi YouTube &amp; TikTok</a></li>
               </ul>
@@ -130,7 +130,7 @@ export default function Footer({ onLoginClick }) {
             </div>
           </div>
 
-          {/* Kolom Kanan: Newsletter & Mental Health Helplines (lg:col-span-5) */}
+          {/* Kolom Kanan: Newsletter & CTA Amankan Akun (lg:col-span-5) */}
           <div className="lg:col-span-5 lg:border-l lg:border-[#84B3CE]/20 lg:pl-10 space-y-7">
             
             {/* Section 1: Join Our Newsletter */}
@@ -139,7 +139,7 @@ export default function Footer({ onLoginClick }) {
                 Berlangganan Tips &amp; Edukasi
               </h4>
               <p className="text-xs text-[#CFE2ED] leading-relaxed">
-                Dapatkan tips kesehatan mental digital, panduan moderasi anti-bullying terbaru, dan pembaruan sistem langsung ke email Anda.
+                Dapatkan tips ruang digital sehat, panduan moderasi anti-bullying terbaru, dan pembaruan sistem langsung ke email Anda.
               </p>
               <form onSubmit={(e) => { e.preventDefault(); alert('Terima kasih telah berlangganan newsletter SABAR!'); }} className="flex gap-2 pt-1">
                 <input
@@ -157,22 +157,22 @@ export default function Footer({ onLoginClick }) {
               </form>
             </div>
 
-            {/* Section 2: Mental Health Helplines / Asisten Rehat */}
+            {/* Section 2: Amankan Akun / Mulai Lindungi Akun */}
             <div className="p-4 sm:p-5 rounded-2xl bg-[#0B2738] border border-[#84B3CE]/25 space-y-3 shadow-sm">
               <div className="flex items-center gap-2">
-                <Heart className="w-4 h-4 text-rose-400" />
+                <Shield className="w-4 h-4 text-[#84B3CE]" />
                 <h4 className="text-sm font-bold font-['Plus_Jakarta_Sans'] text-[#F5EEDD]">
-                  Layanan Rehat &amp; Bantuan Mental
+                  Mulai Amankan Akun Anda
                 </h4>
               </div>
               <p className="text-xs text-[#CFE2ED] leading-relaxed">
-                Merasa tertekan, cemas, atau lelah akibat komentar negatif di media sosial? Akses panduan rehat dan asisten relaksasi kami.
+                Lindungi kolom komentar media sosial Anda dari serangan ujaran kebencian secara otomatis dengan teknologi AI context-aware.
               </p>
               <button
                 onClick={onLoginClick}
                 className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#F5EEDD] hover:bg-white text-xs font-extrabold text-[#16587B] transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer hover:scale-105"
               >
-                <span>Dapatkan Bantuan Rehat</span>
+                <span>Coba Sekarang Gratis</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>

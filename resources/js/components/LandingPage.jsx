@@ -20,7 +20,6 @@ import PricingPage from './PricingPage';
 import DemoPage from './DemoPage';
 import Footer from './Footer';
 import PlatformShowcase from './PlatformShowcase';
-import MentalAssistantShowcase from './MentalAssistantShowcase';
 import { cn } from '../lib/utils';
 
 // ─── CUSTOM SOCIAL ICONS ───────────────────────────────────────────────────
@@ -78,7 +77,6 @@ const staggerContainer = {
 const menuItems = [
   { name: 'Fitur', href: '#fitur' },
   { name: 'Cara Kerja', href: '#cara-kerja' },
-  { name: 'Asisten Rehat', href: '#asisten-rehat' },
   { name: 'Demo AI', href: '#demo' },
   { name: 'Harga', href: '#harga' },
   { name: 'Tentang', href: '#tentang' },
@@ -251,8 +249,8 @@ const features = [
   },
   {
     icon: Heart,
-    title: 'Asisten Rehat Mental',
-    desc: 'Pengukur stres berbasis AI yang memantau kondisi psikologis kreator dan memberikan rekomendasi waktu istirahat yang adem.',
+    title: 'Kenyamanan Berkarya',
+    desc: 'Melindungi ruang kreatif Anda dari ujaran kebencian dan serangan negatif, sehingga Anda bebas berekspresi tanpa cemas.',
   },
   {
     icon: Eye,
@@ -291,7 +289,7 @@ const testimonials = [
     name: 'Aulia Fitri',
     handle: '@aulia.lifestyle',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&auto=format&fit=crop&q=80',
-    text: 'Fitur Asisten Rehat sangat membantu kesehatan mental saya saat kampanye medsos sedang viral. Benar-benar menenangkan!',
+    text: 'SABAR sangat efektif menjaga kenyamanan ruang komentar saat konten saya sedang viral. Kolom komentar tetap kondusif dan sehat!',
     stars: 5,
   },
   {
@@ -613,9 +611,6 @@ export default function LandingPage({ onLoginClick }) {
             </motion.div>
           </div>
         </section>
-
-        {/* ── ASISTEN REHAT MENTAL SHOWCASE ── */}
-        <MentalAssistantShowcase onLoginClick={onLoginClick} />
 
         {/* ── TESTIMONIAL SECTION ── */}
         <section id="tentang" className="py-20 md:py-28 bg-[#F4EFE6]/60 border-y border-[#16587B]/10">
