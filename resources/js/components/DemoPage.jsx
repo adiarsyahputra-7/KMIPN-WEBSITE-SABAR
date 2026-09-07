@@ -10,6 +10,11 @@ import {
   Cpu,
   Quote,
   Flame,
+  ChevronLeft,
+  ArrowRight,
+  Zap,
+  Brain,
+  Lock,
 } from 'lucide-react';
 import axios from 'axios';
 
@@ -66,7 +71,7 @@ const PRESET_COMMENTS = [
   },
 ];
 
-export default function InteractiveAiSimulator() {
+export default function DemoPage({ onLoginClick, onBackClick }) {
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
@@ -115,14 +120,12 @@ export default function InteractiveAiSimulator() {
     }
   };
 
-  // Helper menentukan styling skor toksisitas
   const getToxicityLevel = (score) => {
     if (score <= 30) {
       return {
         label: 'Aman (Rendah)',
         color: 'text-emerald-700',
         barColor: 'from-emerald-400 to-teal-500',
-        bgColor: 'bg-emerald-50 border-emerald-200',
       };
     }
     if (score <= 70) {
@@ -130,21 +133,58 @@ export default function InteractiveAiSimulator() {
         label: 'Waspada (Sedang)',
         color: 'text-amber-700',
         barColor: 'from-amber-400 to-orange-500',
-        bgColor: 'bg-amber-50 border-amber-200',
       };
     }
     return {
       label: 'Toksik / Berbahaya (Tinggi)',
       color: 'text-rose-700',
       barColor: 'from-rose-500 to-red-600',
-      bgColor: 'bg-rose-50 border-rose-200',
     };
   };
 
   return (
-    <section id="demo" className="relative py-20 md:py-28 overflow-hidden">
-      {/* Subtle Ambient Lighting */}
-      <div className="absolute inset-0 pointer-events-none select-none">
+    <div
+      className="min-h-screen font-sans text-slate-800 relative overflow-x-hidden"
+      style={{ backgroundColor: COLORS.bg }}
+    >
+      {/* ── Fixed Navbar / Top Header ── */}
+      <header className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6">
+        <nav className="mx-auto mt-3 max-w-5xl rounded-full border border-[#16587B]/20 bg-white/95 backdrop-blur-xl shadow-lg shadow-[#16587B]/10 px-6 py-2.5 flex items-center justify-between">
+          <button
+            onClick={onBackClick}
+            className="flex items-center gap-2 text-sm font-bold text-[#16587B] hover:text-[#0e3f59] transition-colors cursor-pointer group"
+          >
+            <ChevronLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+            <span>Kembali ke Beranda</span>
+          </button>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onLoginClick}
+              className="text-xs sm:text-sm font-bold text-[#16587B] hover:text-[#0e3f59] px-3 py-1.5 rounded-full hover:bg-[#F5EEDD]/80 transition-colors cursor-pointer"
+            >
+              Masuk
+            </button>
+            <button
+              onClick={onLoginClick}
+              className="flex items-center gap-1.5 text-xs sm:text-sm font-bold bg-[#16587B] text-[#F5EEDD] hover:bg-[#0e3f59] px-4 sm:px-5 py-1.5 sm:py-2 rounded-full shadow-md shadow-[#16587B]/20 transition-all cursor-pointer"
+            >
+              <span>Daftar Gratis</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </nav>
+      </header>
+
+      {/* ── Ambient Soft Glow Background ── */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden select-none">
+        <div
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[450px] opacity-40"
+          style={{
+            background: 'radial-gradient(ellipse at 50% 0%, rgba(132,179,206,0.3) 0%, rgba(245,238,221,0.5) 50%, transparent 80%)',
+            filter: 'blur(70px)',
+          }}
+        />
         <div
           className="absolute top-1/3 -left-32 w-96 h-96 rounded-full opacity-20"
           style={{
@@ -161,13 +201,13 @@ export default function InteractiveAiSimulator() {
         />
       </div>
 
-      <div className="relative mx-auto max-w-6xl px-6">
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-12">
+      {/* ── Main Content Container ── */}
+      <main className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 pt-28 pb-20">
+        {/* Header Title Section */}
+        <div className="text-center max-w-3xl mx-auto mb-10">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
             <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-4 border bg-white shadow-2xs">
@@ -176,33 +216,32 @@ export default function InteractiveAiSimulator() {
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
               </span>
               <span className="text-xs font-bold tracking-wider uppercase" style={{ color: COLORS.vBlue }}>
-                Live Simulator Interaktif
+                Live Simulator Interaktif · Tanpa Login
               </span>
             </div>
 
-            <h2
-              className="text-3xl md:text-4xl font-extrabold tracking-tight mb-4 font-['Plus_Jakarta_Sans']"
+            <h1
+              className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight mb-4 font-['Plus_Jakarta_Sans']"
               style={{ color: COLORS.textHeading }}
             >
               Uji Coba Langsung Deteksi Gemini AI
-            </h2>
+            </h1>
 
-            <p className="text-base sm:text-lg leading-relaxed font-medium" style={{ color: COLORS.textMuted }}>
-              Ketik komentar atau gunakan contoh preset di bawah untuk melihat bagaimana model{' '}
-              <span className="font-bold text-[#16587B]">Gemini 3.6 Flash</span> SABAR mengklasifikasikan sentimen,
-              mendeteksi sarkasme, dan menentukan aksi moderasi tanpa perlu login.
+            <p className="text-sm sm:text-base leading-relaxed font-medium" style={{ color: COLORS.textMuted }}>
+              Ketik komentar apa saja atau pilih contoh preset di bawah untuk membuktikan kehebatan model{' '}
+              <span className="font-bold text-[#16587B]">Gemini 3.6 Flash</span> SABAR dalam menganalisis sentimen,
+              mendeteksi sarkasme, dan menentukan aksi penapisan secara langsung.
             </p>
           </motion.div>
         </div>
 
-        {/* Main Playground Card Container (21st.dev inspired aesthetic) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Kolom Kiri: Input & Preset Selector (lg:col-span-7) */}
+        {/* ── Interactive Playground Grid ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-16">
+          {/* Kolom Kiri: Textarea & Preset Selector (lg:col-span-7) */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
             className="lg:col-span-7 rounded-3xl border bg-white/95 backdrop-blur-xl p-6 sm:p-8 shadow-xl shadow-[#16587B]/5 relative"
             style={{ borderColor: COLORS.border }}
           >
@@ -274,21 +313,20 @@ export default function InteractiveAiSimulator() {
             <form onSubmit={handleAnalyze} className="space-y-4">
               <div className="relative">
                 <textarea
-                  rows={4}
+                  rows={5}
                   maxLength={400}
                   value={inputText}
                   onChange={(e) => {
                     setInputText(e.target.value);
                     if (error) setError(null);
                   }}
-                  placeholder="Ketik komentar medsos di sini... (contoh: 'Keren banget kak karyanya!' atau coba kalimat sarkas)"
+                  placeholder="Ketik komentar medsos di sini... (contoh: 'Keren banget kak karyanya!' atau coba kalimat sindiran sarkas)"
                   className="w-full rounded-2xl p-4 text-sm sm:text-base border transition-all duration-200 outline-none resize-none font-sans text-slate-800 bg-[#FAF7F2]/60 focus:bg-white focus:ring-4 focus:ring-[#16587B]/10 focus:border-[#16587B]"
                   style={{
                     borderColor: error ? '#E11D48' : 'rgba(22, 88, 123, 0.2)',
                   }}
                 />
 
-                {/* Character Count Inside Bottom Right */}
                 <div className="absolute bottom-3 right-3 text-[11px] font-semibold text-slate-400 select-none">
                   {inputText.length} / 400
                 </div>
@@ -349,13 +387,12 @@ export default function InteractiveAiSimulator() {
           {/* Kolom Kanan: Result Card (lg:col-span-5) */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7, delay: 0.15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
             className="lg:col-span-5"
           >
             <div
-              className="rounded-3xl border bg-white/95 backdrop-blur-xl p-6 sm:p-7 shadow-xl shadow-[#16587B]/5 relative min-h-[420px] flex flex-col justify-between"
+              className="rounded-3xl border bg-white/95 backdrop-blur-xl p-6 sm:p-7 shadow-xl shadow-[#16587B]/5 relative min-h-[440px] flex flex-col justify-between"
               style={{ borderColor: COLORS.border }}
             >
               <AnimatePresence mode="wait">
@@ -368,7 +405,7 @@ export default function InteractiveAiSimulator() {
                     transition={{ duration: 0.3 }}
                     className="space-y-5"
                   >
-                    {/* Top Verdict Pill */}
+                    {/* Top Verdict Banner */}
                     <div
                       className={`p-4 rounded-2xl border flex items-start gap-3.5 ${
                         result.action === 'ALLOW'
@@ -434,7 +471,6 @@ export default function InteractiveAiSimulator() {
                             </div>
                           </div>
 
-                          {/* Progress Track */}
                           <div className="h-2.5 w-full bg-slate-200/70 rounded-full overflow-hidden p-0.5">
                             <motion.div
                               initial={{ width: 0 }}
@@ -449,7 +485,6 @@ export default function InteractiveAiSimulator() {
 
                     {/* 4-Grid Diagnostic Metrics */}
                     <div className="grid grid-cols-2 gap-3">
-                      {/* Metric 1: Sentimen */}
                       <div className="p-3 rounded-xl bg-[#FAF7F2] border border-[#16587B]/10">
                         <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">
                           Sentimen
@@ -470,7 +505,6 @@ export default function InteractiveAiSimulator() {
                         </div>
                       </div>
 
-                      {/* Metric 2: Sarkasme */}
                       <div className="p-3 rounded-xl bg-[#FAF7F2] border border-[#16587B]/10">
                         <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">
                           Gaya Sarkasme
@@ -487,7 +521,6 @@ export default function InteractiveAiSimulator() {
                         </div>
                       </div>
 
-                      {/* Metric 3: Severity */}
                       <div className="p-3 rounded-xl bg-[#FAF7F2] border border-[#16587B]/10">
                         <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">
                           Tingkat Keparahan
@@ -511,7 +544,6 @@ export default function InteractiveAiSimulator() {
                         </div>
                       </div>
 
-                      {/* Metric 4: Latency */}
                       <div className="p-3 rounded-xl bg-[#FAF7F2] border border-[#16587B]/10">
                         <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">
                           Waktu Respon
@@ -536,9 +568,9 @@ export default function InteractiveAiSimulator() {
                       </div>
                     </div>
 
-                    {/* Platform Moderation Footer */}
+                    {/* Platform Moderation Simulation */}
                     <div className="pt-2 border-t border-[#16587B]/10 flex items-center justify-between text-[11px] font-medium text-slate-400">
-                      <span>Simulasi Aksi 3 Platform:</span>
+                      <span>Simulasi Aksi Medsos:</span>
                       <span className="font-bold text-slate-600">
                         {result.action === 'ALLOW' ? 'Semua Platform Live' : 'Otomatis Disembunyikan'}
                       </span>
@@ -550,7 +582,7 @@ export default function InteractiveAiSimulator() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="flex flex-col items-center justify-center text-center py-12 px-4 h-full"
+                    className="flex flex-col items-center justify-center text-center py-14 px-4 h-full"
                   >
                     <div
                       className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-sm"
@@ -564,7 +596,7 @@ export default function InteractiveAiSimulator() {
                     </h4>
 
                     <p className="text-xs leading-relaxed max-w-xs font-medium" style={{ color: COLORS.textMuted }}>
-                      Ketik kalimat Anda sendiri atau klik tombol salah satu preset di sebelah kiri, lalu tekan{' '}
+                      Ketik kalimat Anda sendiri atau klik salah satu tombol preset di sebelah kiri, lalu tekan{' '}
                       <span className="font-bold text-[#16587B]">"Analisis Komentar"</span> untuk melihat audit kecerdasan buatan SABAR.
                     </p>
 
@@ -578,7 +610,67 @@ export default function InteractiveAiSimulator() {
             </div>
           </motion.div>
         </div>
-      </div>
-    </section>
+
+        {/* ── 3 Pilar Keunggulan Deteksi SABAR ── */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+          {[
+            {
+              icon: Brain,
+              title: 'Deteksi Slang & Leet-speak',
+              desc: 'Memahami bahasa pergaulan, singkatan, dan kata kasar yang disamarkan menggunakan angka atau karakter tersembunyi (seperti b3g0, t0l0l).',
+            },
+            {
+              icon: Shield,
+              title: 'Deteksi Sarkasme Kontekstual',
+              desc: 'Mengenali sindiran halus bernada merendahkan yang terbungkus kata-kata sopan, yang umumnya lolos dari filter kata kunci biasa.',
+            },
+            {
+              icon: Zap,
+              title: 'Kecepatan Inferensi Real-Time',
+              desc: 'Didukung arsitektur Gemini 3.6 Flash dengan latensi rata-rata <1.5 detik, memungkinkan moderasi instan begitu komentar masuk.',
+            },
+          ].map((item) => (
+            <div
+              key={item.title}
+              className="p-6 rounded-2xl bg-white border border-[#16587B]/10 shadow-sm hover:shadow-md transition-all"
+            >
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 shadow-2xs"
+                style={{ backgroundColor: `${COLORS.rockBlueLight}25`, color: COLORS.vBlue }}
+              >
+                <item.icon className="w-5 h-5" />
+              </div>
+              <h3 className="font-bold text-base mb-2 font-['Plus_Jakarta_Sans']" style={{ color: COLORS.vBlue }}>
+                {item.title}
+              </h3>
+              <p className="text-xs sm:text-sm font-medium leading-relaxed" style={{ color: COLORS.textMuted }}>
+                {item.desc}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Bottom CTA Box ── */}
+        <div className="rounded-3xl p-8 sm:p-10 text-center bg-gradient-to-r from-[#103A52] to-[#16587B] text-[#F5EEDD] shadow-xl relative overflow-hidden">
+          <div className="relative z-10 max-w-2xl mx-auto space-y-4">
+            <h3 className="text-2xl sm:text-3xl font-extrabold font-['Plus_Jakarta_Sans']">
+              Lindungi Akun Medsos Anda Hari Ini
+            </h3>
+            <p className="text-xs sm:text-sm text-[#84B3CE] font-medium leading-relaxed">
+              Hubungkan akun Instagram, YouTube, atau TikTok Anda sekarang dan biarkan AI SABAR menjaga ketenangan ruang karya Anda secara otomatis.
+            </p>
+            <div className="pt-2">
+              <button
+                onClick={onLoginClick}
+                className="inline-flex items-center gap-2 rounded-full px-8 py-3.5 text-sm font-bold bg-[#F5EEDD] text-[#16587B] hover:bg-white shadow-lg transition-all duration-200 cursor-pointer hover:scale-105"
+              >
+                <span>Mulai Sekarang — Gratis</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
   );
 }

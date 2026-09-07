@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { Button } from './ui/Button';
 import PricingPage from './PricingPage';
-import InteractiveAiSimulator from './InteractiveAiSimulator';
+import DemoPage from './DemoPage';
 import { cn } from '../lib/utils';
 
 // ─── CUSTOM SOCIAL ICONS ───────────────────────────────────────────────────
@@ -82,7 +82,7 @@ const menuItems = [
 ];
 
 // ─── KOMPONEN HERO HEADER (Navbar Cerah & Kontras) ─────────────────────────
-const HeroHeader = ({ onLoginClick, onPricingClick }) => {
+const HeroHeader = ({ onLoginClick, onPricingClick, onDemoClick }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -122,6 +122,13 @@ const HeroHeader = ({ onLoginClick, onPricingClick }) => {
                 {item.name === 'Harga' ? (
                   <button
                     onClick={onPricingClick}
+                    className="text-sm font-semibold text-[#16587B]/80 hover:text-[#16587B] transition-colors duration-200 cursor-pointer bg-transparent border-none p-0"
+                  >
+                    {item.name}
+                  </button>
+                ) : item.name === 'Demo AI' ? (
+                  <button
+                    onClick={onDemoClick}
                     className="text-sm font-semibold text-[#16587B]/80 hover:text-[#16587B] transition-colors duration-200 cursor-pointer bg-transparent border-none p-0"
                   >
                     {item.name}
@@ -181,6 +188,14 @@ const HeroHeader = ({ onLoginClick, onPricingClick }) => {
                 <button
                   key={item.name}
                   onClick={() => { setMenuOpen(false); onPricingClick(); }}
+                  className="block w-full text-left text-sm font-semibold text-[#16587B] hover:text-[#0e3f59] py-1 px-2 bg-transparent border-none cursor-pointer"
+                >
+                  {item.name}
+                </button>
+              ) : item.name === 'Demo AI' ? (
+                <button
+                  key={item.name}
+                  onClick={() => { setMenuOpen(false); onDemoClick(); }}
                   className="block w-full text-left text-sm font-semibold text-[#16587B] hover:text-[#0e3f59] py-1 px-2 bg-transparent border-none cursor-pointer"
                 >
                   {item.name}
@@ -299,13 +314,27 @@ export default function LandingPage({ onLoginClick }) {
     );
   }
 
+  // Tampilkan halaman Demo AI jika state aktif
+  if (currentPage === 'demo') {
+    return (
+      <DemoPage
+        onLoginClick={onLoginClick}
+        onBackClick={() => setCurrentPage('landing')}
+      />
+    );
+  }
+
   return (
     <div
       className="min-h-screen overflow-x-hidden font-sans text-slate-800 scroll-smooth"
       style={{ backgroundColor: COLORS.bg }}
     >
       {/* ── Navbar ── */}
-      <HeroHeader onLoginClick={onLoginClick} onPricingClick={() => setCurrentPage('pricing')} />
+      <HeroHeader
+        onLoginClick={onLoginClick}
+        onPricingClick={() => setCurrentPage('pricing')}
+        onDemoClick={() => setCurrentPage('demo')}
+      />
 
       {/* ── HERO SECTION ── */}
       <main className="relative overflow-hidden">
@@ -421,14 +450,14 @@ export default function LandingPage({ onLoginClick }) {
                     <span>Mulai Sekarang — Gratis</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
-                  <a
-                    href="#demo"
-                    className="flex items-center gap-2 rounded-full px-7 py-3.5 text-base font-bold border transition-all duration-300 bg-white hover:bg-[#F5EEDD]/50 shadow-2xs"
+                  <button
+                    onClick={() => setCurrentPage('demo')}
+                    className="flex items-center gap-2 rounded-full px-7 py-3.5 text-base font-bold border transition-all duration-300 bg-white hover:bg-[#F5EEDD]/50 shadow-2xs cursor-pointer"
                     style={{ borderColor: `${COLORS.vBlue}40`, color: COLORS.vBlue }}
                   >
                     <Play className="w-4 h-4 fill-current" />
                     <span>Lihat Demo AI</span>
-                  </a>
+                  </button>
                 </motion.div>
 
                 {/* Stats Row */}
@@ -631,9 +660,6 @@ export default function LandingPage({ onLoginClick }) {
             </motion.div>
           </div>
         </section>
-
-        {/* ── LIVE INTERACTIVE AI SIMULATOR (GEMINI 3.6 FLASH) ── */}
-        <InteractiveAiSimulator />
 
         {/* ── TESTIMONIAL SECTION ── */}
         <section id="tentang" className="py-20 md:py-28 bg-[#F4EFE6]/60 border-y border-[#16587B]/10">
