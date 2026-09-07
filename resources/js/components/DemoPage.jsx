@@ -17,6 +17,7 @@ import {
   Lock,
 } from 'lucide-react';
 import axios from 'axios';
+import Footer from './Footer';
 
 // ─── KONSTANTA WARNA RESMI SABAR ──────────────────────────────────────────
 const COLORS = {
@@ -210,16 +211,6 @@ export default function DemoPage({ onLoginClick, onBackClick }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-4 border bg-white shadow-2xs">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-              </span>
-              <span className="text-xs font-bold tracking-wider uppercase" style={{ color: COLORS.vBlue }}>
-                Live Simulator Interaktif · Tanpa Login
-              </span>
-            </div>
-
             <h1
               className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight mb-4 font-['Plus_Jakarta_Sans']"
               style={{ color: COLORS.textHeading }}
@@ -649,28 +640,10 @@ export default function DemoPage({ onLoginClick, onBackClick }) {
             </div>
           ))}
         </div>
-
-        {/* ── Bottom CTA Box ── */}
-        <div className="rounded-3xl p-8 sm:p-10 text-center bg-gradient-to-r from-[#103A52] to-[#16587B] text-[#F5EEDD] shadow-xl relative overflow-hidden">
-          <div className="relative z-10 max-w-2xl mx-auto space-y-4">
-            <h3 className="text-2xl sm:text-3xl font-extrabold font-['Plus_Jakarta_Sans']">
-              Lindungi Akun Medsos Anda Hari Ini
-            </h3>
-            <p className="text-xs sm:text-sm text-[#84B3CE] font-medium leading-relaxed">
-              Hubungkan akun Instagram, YouTube, atau TikTok Anda sekarang dan biarkan AI SABAR menjaga ketenangan ruang karya Anda secara otomatis.
-            </p>
-            <div className="pt-2">
-              <button
-                onClick={onLoginClick}
-                className="inline-flex items-center gap-2 rounded-full px-8 py-3.5 text-sm font-bold bg-[#F5EEDD] text-[#16587B] hover:bg-white shadow-lg transition-all duration-200 cursor-pointer hover:scale-105"
-              >
-                <span>Mulai Sekarang — Gratis</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
       </main>
+
+      {/* ── FOOTER UTAMA RESMI SABAR ── */}
+      <Footer onLoginClick={onLoginClick} />
     </div>
   );
 }
