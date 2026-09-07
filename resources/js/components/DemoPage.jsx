@@ -150,7 +150,7 @@ export default function DemoPage({ onLoginClick, onBackClick }) {
     >
       {/* ── Fixed Navbar / Top Header ── */}
       <header className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6">
-        <nav className="mx-auto mt-3 max-w-5xl rounded-full border border-[#16587B]/20 bg-white/95 backdrop-blur-xl shadow-lg shadow-[#16587B]/10 px-6 py-2.5 flex items-center justify-between">
+        <nav className="mx-auto mt-3 max-w-5xl rounded-full border border-[#16587B]/20 bg-white/95 backdrop-blur-md shadow-lg shadow-[#16587B]/10 px-6 py-2.5 flex items-center justify-between">
           <button
             onClick={onBackClick}
             className="flex items-center gap-2 text-sm font-bold text-[#16587B] hover:text-[#0e3f59] transition-colors cursor-pointer group"
@@ -180,24 +180,21 @@ export default function DemoPage({ onLoginClick, onBackClick }) {
       {/* ── Ambient Soft Glow Background ── */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden select-none">
         <div
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[450px] opacity-40"
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[450px] opacity-40 pointer-events-none"
           style={{
-            background: 'radial-gradient(ellipse at 50% 0%, rgba(132,179,206,0.3) 0%, rgba(245,238,221,0.5) 50%, transparent 80%)',
-            filter: 'blur(70px)',
+            background: 'radial-gradient(ellipse at 50% 0%, rgba(132,179,206,0.3) 0%, rgba(245,238,221,0.4) 45%, transparent 75%)',
           }}
         />
         <div
-          className="absolute top-1/3 -left-32 w-96 h-96 rounded-full opacity-20"
+          className="absolute top-1/3 -left-32 w-96 h-96 rounded-full opacity-20 pointer-events-none"
           style={{
             background: 'radial-gradient(circle, rgba(132,179,206,0.4) 0%, transparent 70%)',
-            filter: 'blur(70px)',
           }}
         />
         <div
-          className="absolute bottom-10 -right-32 w-96 h-96 rounded-full opacity-15"
+          className="absolute bottom-10 -right-32 w-96 h-96 rounded-full opacity-15 pointer-events-none"
           style={{
             background: 'radial-gradient(circle, rgba(22,88,123,0.25) 0%, transparent 70%)',
-            filter: 'blur(70px)',
           }}
         />
       </div>
@@ -233,7 +230,7 @@ export default function DemoPage({ onLoginClick, onBackClick }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="lg:col-span-7 rounded-3xl border bg-white/95 backdrop-blur-xl p-6 sm:p-8 shadow-xl shadow-[#16587B]/5 relative"
+            className="lg:col-span-7 rounded-3xl border bg-white p-6 sm:p-8 shadow-xl shadow-[#16587B]/5 relative"
             style={{ borderColor: COLORS.border }}
           >
             {/* Top Toolbar / Engine Specs */}
@@ -383,7 +380,7 @@ export default function DemoPage({ onLoginClick, onBackClick }) {
             className="lg:col-span-5"
           >
             <div
-              className="rounded-3xl border bg-white/95 backdrop-blur-xl p-6 sm:p-7 shadow-xl shadow-[#16587B]/5 relative min-h-[440px] flex flex-col justify-between"
+              className="rounded-3xl border bg-white p-6 sm:p-7 shadow-xl shadow-[#16587B]/5 relative min-h-[440px] flex flex-col justify-between"
               style={{ borderColor: COLORS.border }}
             >
               <AnimatePresence mode="wait">

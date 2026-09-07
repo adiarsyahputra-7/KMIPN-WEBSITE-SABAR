@@ -57,14 +57,13 @@ const COLORS = {
   textMuted: '#4F7085',     // Text Subtitle/Keterangan Muted
 };
 
-// ─── ANIMASI VARIANTS ─────────────────────────────────────────────────────
+// ─── ANIMASI VARIANTS (Dioptimalkan tanpa CSS blur agar scrolling 60 FPS mulus) ───
 const fadeUp = {
-  hidden: { opacity: 0, y: 24, filter: 'blur(8px)' },
+  hidden: { opacity: 0, y: 24 },
   visible: {
     opacity: 1,
     y: 0,
-    filter: 'blur(0px)',
-    transition: { type: 'spring', bounce: 0.3, duration: 1.2 },
+    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
   },
 };
 
@@ -99,8 +98,8 @@ const HeroHeader = ({ onLoginClick, onPricingClick, onDemoClick }) => {
         className={cn(
           'mx-auto mt-3 transition-all duration-500 rounded-full border shadow-md',
           scrolled
-            ? 'max-w-4xl border-[#16587B]/20 bg-white/95 backdrop-blur-xl shadow-lg shadow-[#16587B]/10 px-6 py-2'
-            : 'max-w-6xl border-[#16587B]/15 bg-white/85 backdrop-blur-md px-6 py-2.5'
+            ? 'max-w-4xl border-[#16587B]/20 bg-white/95 backdrop-blur-md shadow-lg shadow-[#16587B]/10 px-6 py-2'
+            : 'max-w-6xl border-[#16587B]/15 bg-white/90 backdrop-blur-sm px-6 py-2.5'
         )}
       >
         <div className="flex items-center justify-between">
@@ -343,26 +342,23 @@ export default function LandingPage({ onLoginClick }) {
         <div className="absolute inset-0 pointer-events-none overflow-hidden select-none">
           {/* Top Spotlight Warm Beam */}
           <div
-            className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[450px] opacity-60"
+            className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[450px] opacity-60 pointer-events-none"
             style={{
-              background: `radial-gradient(ellipse at 50% 0%, rgba(132,179,206,0.3) 0%, rgba(245,238,221,0.5) 50%, transparent 80%)`,
-              filter: 'blur(60px)',
+              background: `radial-gradient(ellipse at 50% 0%, rgba(132,179,206,0.25) 0%, rgba(245,238,221,0.4) 45%, transparent 75%)`,
             }}
           />
 
           {/* Ambient Soft Orbs */}
           <div
-            className="absolute top-32 -left-40 w-[500px] h-[500px] rounded-full opacity-30"
+            className="absolute top-32 -left-40 w-[500px] h-[500px] rounded-full opacity-30 pointer-events-none"
             style={{
-              background: `radial-gradient(circle, rgba(132,179,206,0.4) 0%, transparent 70%)`,
-              filter: 'blur(80px)',
+              background: `radial-gradient(circle, rgba(132,179,206,0.3) 0%, transparent 70%)`,
             }}
           />
           <div
-            className="absolute top-48 -right-40 w-[500px] h-[500px] rounded-full opacity-25"
+            className="absolute top-48 -right-40 w-[500px] h-[500px] rounded-full opacity-25 pointer-events-none"
             style={{
-              background: `radial-gradient(circle, rgba(22,88,123,0.2) 0%, transparent 70%)`,
-              filter: 'blur(80px)',
+              background: `radial-gradient(circle, rgba(22,88,123,0.18) 0%, transparent 70%)`,
             }}
           />
 
@@ -532,6 +528,7 @@ export default function LandingPage({ onLoginClick }) {
                   className="group relative rounded-2xl p-7 border bg-white transition-all duration-300 shadow-sm hover:shadow-xl hover:shadow-[#16587B]/10"
                   style={{
                     borderColor: COLORS.bgBorder,
+                    willChange: 'transform, opacity',
                   }}
                 >
                   <div

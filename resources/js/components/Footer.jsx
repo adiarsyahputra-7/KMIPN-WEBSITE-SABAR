@@ -34,7 +34,7 @@ export default function Footer({ onLoginClick }) {
       {/* Subtle Ambient Light Glow */}
       <div
         className="absolute top-0 right-1/4 w-[500px] h-[500px] rounded-full opacity-10 pointer-events-none"
-        style={{ background: 'radial-gradient(circle, #84B3CE, transparent)', filter: 'blur(80px)' }}
+        style={{ background: 'radial-gradient(circle, #84B3CE 0%, transparent 70%)' }}
       />
 
       <div className="mx-auto max-w-7xl px-6 relative z-10">

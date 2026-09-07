@@ -383,11 +383,10 @@ export default function PricingPage({ onLoginClick, onBackClick }) {
   };
 
   const fadeUp = {
-    hidden: { opacity: 0, y: 24, filter: 'blur(6px)' },
+    hidden: { opacity: 0, y: 24 },
     visible: {
       opacity: 1,
       y: 0,
-      filter: 'blur(0px)',
       transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
     },
   };
@@ -402,15 +401,13 @@ export default function PricingPage({ onLoginClick, onBackClick }) {
         <div
           className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px]"
           style={{
-            background: `radial-gradient(ellipse at 50% 0%, rgba(132,179,206,0.25) 0%, rgba(245,238,221,0.4) 55%, transparent 80%)`,
-            filter: 'blur(60px)',
+            background: `radial-gradient(ellipse at 50% 0%, rgba(132,179,206,0.25) 0%, rgba(245,238,221,0.35) 45%, transparent 75%)`,
           }}
         />
         <div
           className="absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full"
           style={{
             background: `radial-gradient(circle, rgba(22,88,123,0.06) 0%, transparent 70%)`,
-            filter: 'blur(80px)',
           }}
         />
       </div>
