@@ -21,6 +21,10 @@ Route::post('/webhook/instagram', [WebhookController::class, 'handle'])
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/register', [AuthController::class, 'register']);
 
+// ─── Public Interactive AI Simulator (Tanpa Login) ───────────────────────────
+Route::post('/public/analyze-demo', [CommentController::class, 'publicAnalyzeDemo'])
+    ->middleware('throttle:30,1');
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/me', [AuthController::class, 'me']);

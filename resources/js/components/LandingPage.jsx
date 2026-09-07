@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Button } from './ui/Button';
 import PricingPage from './PricingPage';
+import InteractiveAiSimulator from './InteractiveAiSimulator';
 import { cn } from '../lib/utils';
 
 // ─── CUSTOM SOCIAL ICONS ───────────────────────────────────────────────────
@@ -300,7 +301,7 @@ export default function LandingPage({ onLoginClick }) {
 
   return (
     <div
-      className="min-h-screen overflow-x-hidden font-sans text-slate-800"
+      className="min-h-screen overflow-x-hidden font-sans text-slate-800 scroll-smooth"
       style={{ backgroundColor: COLORS.bg }}
     >
       {/* ── Navbar ── */}
@@ -630,6 +631,9 @@ export default function LandingPage({ onLoginClick }) {
             </motion.div>
           </div>
         </section>
+
+        {/* ── LIVE INTERACTIVE AI SIMULATOR (GEMINI 3.6 FLASH) ── */}
+        <InteractiveAiSimulator />
 
         {/* ── TESTIMONIAL SECTION ── */}
         <section id="tentang" className="py-20 md:py-28 bg-[#F4EFE6]/60 border-y border-[#16587B]/10">

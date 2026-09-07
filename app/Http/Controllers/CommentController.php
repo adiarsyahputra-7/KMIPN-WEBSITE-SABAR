@@ -128,6 +128,37 @@ class CommentController extends Controller
     }
 
     /**
+     * Simulator Publik: Menganalisis teks menggunakan Google Gemini AI tanpa autentikasi login.
+     * Digunakan pada live demo interactive simulator di landing page.
+     */
+    public function publicAnalyzeDemo(Request $request, \App\Services\GeminiService $geminiService)
+    {
+        $validated = $request->validate([
+            'text' => 'required|string|min:2|max:500',
+        ]);
+
+        $startTime = microtime(true);
+        $result = $geminiService->analyzeComment($validated['text']);
+        $duration = round((microtime(true) - $startTime) * 1000); // ms
+
+        // Pastikan toxicity_score dalam format persentase yang jelas (0 - 100)
+        $rawScore = $result['toxicity_score'] ?? 0;
+        $toxicityPercent = $rawScore <= 1.0 ? round($rawScore * 100) : round($rawScore);
+
+        return response()->json([
+            'sentiment'       => strtoupper($result['sentiment'] ?? 'NETRAL'),
+            'toxicity_score'  => min(100, max(0, $toxicityPercent)),
+            'severity'        => (int) ($result['severity'] ?? 1),
+            'is_sarcasm'      => (bool) ($result['is_sarcasm'] ?? false),
+            'action'          => strtoupper($result['action'] ?? 'ALLOW'),
+            'reason'          => $result['reason'] ?? 'Dianalisis menggunakan Gemini AI.',
+            'model'           => 'Gemini 3.6 Flash',
+            'latency_ms'      => $duration,
+            'timestamp'       => now()->toIso8601String(),
+        ]);
+    }
+
+    /**
      * Moderasi: Toggle sembunyikan/tampilkan komentar dan sinkronkan langsung ke Instagram jika ada token.
      */
     public function toggleHide(Request $request, $id)
