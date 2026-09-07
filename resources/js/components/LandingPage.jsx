@@ -19,6 +19,8 @@ import { Button } from './ui/Button';
 import PricingPage from './PricingPage';
 import DemoPage from './DemoPage';
 import Footer from './Footer';
+import PlatformShowcase from './PlatformShowcase';
+import MentalAssistantShowcase from './MentalAssistantShowcase';
 import { cn } from '../lib/utils';
 
 // ─── CUSTOM SOCIAL ICONS ───────────────────────────────────────────────────
@@ -44,17 +46,17 @@ const TikTokIcon = ({ size = 20, color = 'currentColor' }) => (
 
 // ─── KONSTANTA WARNA SABAR (TEMA CERAH, ADEM & ELEGAN) ────────────────────
 const COLORS = {
-  vBlue: '#16587B',         // Venice Blue (Primary Accent & Key Headings)
-  rockBlue: '#2A6E94',      // Rock Blue Darker Accent for Contrast
-  rockBlueLight: '#84B3CE', // Rock Blue Light Accent
-  merino: '#F5EEDD',        // Merino Warm Cream
-  bg: '#FAF7F2',            // Background Utama: Cerah & Adem (Soft Warm Cream White)
-  bgCard: '#FFFFFF',        // Background Card: Crisp Clean Pure White
-  bgCardSubtle: '#F2EDE4',   // Background Card Soft Merino Tint
-  bgBorder: 'rgba(22, 88, 123, 0.15)', // Light Venice Blue Border
-  textHeading: '#16587B',   // Text Judul Utama
-  textDark: '#0D2738',      // Text Body/Content (Rich Ocean Slate)
-  textMuted: '#4F7085',     // Text Subtitle/Keterangan Muted
+  vBlue: '#16587B',         
+  rockBlue: '#2A6E94',      
+  rockBlueLight: '#84B3CE', 
+  merino: '#F5EEDD',        
+  bg: '#FAF7F2',            
+  bgCard: '#FFFFFF',        
+  bgCardSubtle: '#F2EDE4',   
+  bgBorder: 'rgba(22, 88, 123, 0.15)',
+  textHeading: '#16587B',   
+  textDark: '#0D2738',      
+  textMuted: '#4F7085',     
 };
 
 // ─── ANIMASI VARIANTS (Dioptimalkan tanpa CSS blur agar scrolling 60 FPS mulus) ───
@@ -76,6 +78,7 @@ const staggerContainer = {
 const menuItems = [
   { name: 'Fitur', href: '#fitur' },
   { name: 'Cara Kerja', href: '#cara-kerja' },
+  { name: 'Asisten Rehat', href: '#asisten-rehat' },
   { name: 'Demo AI', href: '#demo' },
   { name: 'Harga', href: '#harga' },
   { name: 'Tentang', href: '#tentang' },
@@ -603,61 +606,16 @@ export default function LandingPage({ onLoginClick }) {
                 </div>
               </motion.div>
 
-              {/* Visual Platform Integration */}
+              {/* Visual Platform Integration: Interactive 3-Platform Showcase */}
               <motion.div variants={fadeUp} className="relative">
-                <div
-                  className="rounded-3xl border p-8 bg-white shadow-xl shadow-[#16587B]/5 relative overflow-hidden"
-                  style={{ borderColor: COLORS.bgBorder }}
-                >
-                  <div className="relative text-center mb-8">
-                    <div
-                      className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-3 shadow-md"
-                      style={{ backgroundColor: COLORS.vBlue }}
-                    >
-                      <Shield className="w-8 h-8 text-[#F5EEDD]" />
-                    </div>
-                    <h3 className="font-extrabold text-xl font-['Plus_Jakarta_Sans']" style={{ color: COLORS.vBlue }}>SABAR AI Core</h3>
-                    <p className="text-xs font-semibold mt-0.5" style={{ color: COLORS.textMuted }}>Sistem Moderasi Medsos Berbasis NLP</p>
-                  </div>
-
-                  {/* Platform Connected Badges */}
-                  <div className="grid grid-cols-3 gap-4">
-                    {platforms.map((p) => (
-                      <div key={p.name} className="text-center p-3 rounded-xl bg-[#FAF7F2] border border-[#16587B]/10">
-                        <div
-                          className="mx-auto w-10 h-10 rounded-lg flex items-center justify-center mb-1.5 shadow-2xs"
-                          style={{ backgroundColor: '#FFFFFF' }}
-                        >
-                          <p.icon size={20} color={p.color} />
-                        </div>
-                        <p className="text-xs font-bold" style={{ color: COLORS.textDark }}>{p.name}</p>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Live Stats Preview */}
-                  <div
-                    className="mt-6 rounded-2xl p-4 space-y-3 bg-[#FAF7F2] border border-[#16587B]/10"
-                  >
-                    {[
-                      { label: 'Komentar Dianalisis', value: '2,847', trend: 'Real-time' },
-                      { label: 'Toksik Dicegah', value: '183', trend: 'Otomatis' },
-                      { label: 'Indeks Rehat Mental', value: '87/100', trend: 'Sangat Baik' },
-                    ].map((stat) => (
-                      <div key={stat.label} className="flex items-center justify-between text-xs font-medium">
-                        <span style={{ color: COLORS.textMuted }}>{stat.label}</span>
-                        <div className="text-right">
-                          <span className="font-bold text-sm" style={{ color: COLORS.vBlue }}>{stat.value}</span>
-                          <span className="text-[11px] ml-2 text-emerald-700 font-bold">({stat.trend})</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <PlatformShowcase />
               </motion.div>
             </motion.div>
           </div>
         </section>
+
+        {/* ── ASISTEN REHAT MENTAL SHOWCASE ── */}
+        <MentalAssistantShowcase onLoginClick={onLoginClick} />
 
         {/* ── TESTIMONIAL SECTION ── */}
         <section id="tentang" className="py-20 md:py-28 bg-[#F4EFE6]/60 border-y border-[#16587B]/10">
