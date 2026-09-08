@@ -51,4 +51,10 @@ return [
         'rapidapi_host' => env('TIKTOK_RAPIDAPI_HOST', 'tiktok-api23.p.rapidapi.com'),
     ],
 
+    'google' => [
+        'client_id'     => env('GOOGLE_CLIENT_ID', env('YOUTUBE_CLIENT_ID')),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET', env('YOUTUBE_CLIENT_SECRET')),
+        'redirect_uri'  => env('GOOGLE_REDIRECT_URI', env('APP_URL', 'http://localhost:8000') . '/auth/google/callback'),
+    ],
+
 ];

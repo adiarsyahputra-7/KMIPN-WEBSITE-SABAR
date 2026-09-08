@@ -9,40 +9,106 @@ import '../css/app.css';
 
 function App() {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(!!localStorage.getItem('auth_token'));
+  // Cek juga jika ada ?token= dari Google OAuth sebelum inisialisasi loading
+  const hasGoogleToken = new URLSearchParams(window.location.search).get('token');
+  const [loading, setLoading] = useState(!!(localStorage.getItem('auth_token') || hasGoogleToken));
 
   // ─── STATE UNTUK OAUTH TOAST NOTIFICATION ──────────────────────────────────
   // Dibaca dari URL query params yang dikirim oleh InstagramAuthController
   const [oauthToast, setOauthToast] = useState(null);
 
   // ─── BACA QUERY PARAMS OAUTH DARI URL ──────────────────────────────────────
-  // InstagramAuthController / YouTubeAuthController mengirim:
-  //   /?instagram_connected=1&message=... atau /?youtube_connected=1&message=...
+  // Menangani callback dari:
+  //   - Google OAuth        : /?token=...&google_login=1&user_name=...
+  //   - Instagram OAuth     : /?instagram_connected=1&message=...
+  //   - YouTube OAuth       : /?youtube_connected=1&message=...
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+
+    // ── Google OAuth: Tangkap token dan simpan ke localStorage ──
+    const googleToken  = params.get('token');
+    const googleLogin  = params.get('google_login');
+    const googleName   = params.get('user_name');
+    const googleMsg    = params.get('message');
+
+    if (googleLogin !== null) {
+      // Bersihkan URL lebih dulu agar tidak terbaca ulang
+      window.history.replaceState({}, document.title, window.location.pathname);
+
+      if (googleLogin === '1' && googleToken) {
+        // Login berhasil: simpan token ke localStorage lalu ambil data user
+        localStorage.setItem('auth_token', googleToken);
+
+        api.get('/auth/me')
+          .then((res) => {
+            const userData = res.data;
+            setUser({
+              id:     userData.id,
+              name:   userData.name,
+              email:  userData.email,
+              role:   userData.role   || 'creator',
+              plan:   userData.plan   || 'Creator Pro Tier',
+              avatar: userData.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
+            });
+            setOauthToast({
+              success:  true,
+              platform: 'google',
+              message:  `Selamat datang, ${googleName || userData.name}! Login Google berhasil.`,
+            });
+          })
+          .catch(() => {
+            localStorage.removeItem('auth_token');
+            setOauthToast({
+              success:  false,
+              platform: 'google',
+              message:  'Login berhasil namun gagal memuat data pengguna. Coba refresh halaman.',
+            });
+          })
+          .finally(() => setLoading(false));
+
+        return; // Jangan lanjutkan ke useEffect berikutnya
+      } else {
+        // Login gagal / dibatalkan
+        setLoading(false);
+        setOauthToast({
+          success:  false,
+          platform: 'google',
+          message:  googleMsg ? decodeURIComponent(googleMsg) : 'Login dengan Google gagal. Silakan coba lagi.',
+        });
+        return;
+      }
+    }
+
+    // ── Instagram & YouTube OAuth ──
     const igConnected = params.get('instagram_connected');
     const ytConnected = params.get('youtube_connected');
-    const message = params.get('message');
+    const message     = params.get('message');
 
     if ((igConnected !== null || ytConnected !== null) && message) {
-      const isYoutube = ytConnected !== null;
+      const isYoutube   = ytConnected !== null;
       const isConnected = isYoutube ? ytConnected === '1' : igConnected === '1';
 
       setOauthToast({
-        success: isConnected,
+        success:  isConnected,
         platform: isYoutube ? 'youtube' : 'instagram',
-        message: decodeURIComponent(message),
+        message:  decodeURIComponent(message),
       });
 
       // Bersihkan URL dari query params menggunakan History API
-      // agar URL terlihat bersih tanpa refresh halaman
       const cleanUrl = window.location.pathname;
       window.history.replaceState({}, document.title, cleanUrl);
     }
   }, []);
 
   // ─── CEK SESI TOKEN SAAT PERTAMA KALI DIBUKA ──────────────────────────────
+  // Hanya jalan jika tidak ada alur Google OAuth aktif (google_login param)
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('google_login') !== null) {
+      // Ditangani oleh useEffect OAuth di atas — jangan double-fetch
+      return;
+    }
+
     const token = localStorage.getItem('auth_token');
     if (!token) {
       setLoading(false);
@@ -53,11 +119,11 @@ function App() {
       .then((res) => {
         const userData = res.data;
         setUser({
-          id: userData.id,   // ← FIX: diperlukan agar user_id OAuth tidak null
-          name: userData.name,
-          email: userData.email,
-          role: userData.role || 'creator',
-          plan: userData.plan || 'Creator Pro Tier',
+          id:     userData.id,
+          name:   userData.name,
+          email:  userData.email,
+          role:   userData.role   || 'creator',
+          plan:   userData.plan   || 'Creator Pro Tier',
           avatar: userData.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
         });
       })

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\InstagramAuthController;
 use App\Http\Controllers\YouTubeAuthController;
 use Illuminate\Support\Facades\Route;
@@ -20,6 +21,12 @@ Route::get('/auth/youtube', [YouTubeAuthController::class, 'redirect'])
     ->name('youtube.auth.redirect');
 Route::get('/auth/youtube/callback', [YouTubeAuthController::class, 'callback'])
     ->name('youtube.auth.callback');
+
+// ─── GOOGLE AUTH ROUTES (LOGIN & DAFTAR INSTAN) ──────────────────────────────
+Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])
+    ->name('google.auth.redirect');
+Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])
+    ->name('google.auth.callback');
 
 // ─── REACT SPA CATCH-ALL ────────────────────────────────────────────────────
 // Tangkap semua route yang tidak dikenali dan kembalikan ke React untuk

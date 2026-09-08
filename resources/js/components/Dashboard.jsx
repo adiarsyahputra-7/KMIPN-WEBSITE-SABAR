@@ -291,7 +291,7 @@ export default function Dashboard({ user, onLogout }) {
             <div className="lg:col-span-7">
               <LiveCommentAnalyzer onAddComment={handleAddComment} isDarkMode={isDarkMode} />
             </div>
-          </div>/.,; 
+          </div>
 
           {/* Comment Table */}
           <CommentTable
