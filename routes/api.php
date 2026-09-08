@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InstagramAuthController;
+use App\Http\Controllers\PushNotificationController;
 use App\Http\Controllers\SocialAccountController;
 use App\Http\Controllers\WebhookController;
 
@@ -47,4 +48,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // Memperbarui Long-Lived Token yang hampir kedaluwarsa tanpa login ulang ke Meta.
     Route::post('/social-accounts/{id}/refresh-token', [InstagramAuthController::class, 'refreshToken'])
         ->name('instagram.token.refresh');
+
+    // ─── Web Push Notification ─────────────────────────────────────────────
+    Route::get('/push/vapid-public-key', [PushNotificationController::class, 'vapidPublicKey']);
+    Route::post('/push/subscribe', [PushNotificationController::class, 'subscribe']);
+    Route::post('/push/unsubscribe', [PushNotificationController::class, 'unsubscribe']);
+    Route::post('/push/test', [PushNotificationController::class, 'testNotification']);
 });

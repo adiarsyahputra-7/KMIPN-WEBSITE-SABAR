@@ -40,6 +40,11 @@ class User extends Authenticatable
         return $this->hasManyThrough(Comment::class, SocialAccount::class);
     }
 
+    public function pushSubscriptions()
+    {
+        return $this->hasMany(PushSubscription::class);
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *

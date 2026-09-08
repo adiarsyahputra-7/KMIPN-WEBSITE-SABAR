@@ -13,5 +13,14 @@
 </head>
 <body class="bg-[#F8FAFC] text-slate-800 antialiased selection:bg-emerald-100 selection:text-emerald-900">
     <div id="root"></div>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((reg) => console.log('SABAR Service Worker registered:', reg.scope))
+                    .catch((err) => console.warn('SABAR Service Worker registration failed:', err));
+            });
+        }
+    </script>
 </body>
 </html>

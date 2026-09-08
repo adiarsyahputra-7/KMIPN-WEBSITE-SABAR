@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Comment;
 use App\Services\InstagramService;
 use App\Services\YouTubeService;
+use App\Services\WebPushService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Exception;
@@ -54,7 +55,7 @@ class CommentController extends Controller
         return response()->json($comments);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, WebPushService $webPushService)
     {
         $validated = $request->validate([
             'social_account_id' => 'nullable|exists:social_accounts,id',
@@ -106,6 +107,15 @@ class CommentController extends Controller
             'is_hidden' => $isHidden,
             'timestamp' => now(),
         ]);
+
+        // Peringatan Web Push Realtime jika komentar bermuatan negatif/toksik
+        if ($comment->is_hidden || $comment->toxicity_score >= 0.5 || $comment->sentiment === 'NEGATIF') {
+            try {
+                $webPushService->sendToxicAlert($user, $comment);
+            } catch (Exception $e) {
+                Log::warning('WebPush auto-alert failed: ' . $e->getMessage());
+            }
+        }
 
         return response()->json([
             'message' => 'Komentar berhasil disimpan',

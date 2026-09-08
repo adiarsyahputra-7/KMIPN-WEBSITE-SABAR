@@ -7,6 +7,7 @@ import LiveCommentAnalyzer from './LiveCommentAnalyzer';
 import CommentTable from './CommentTable';
 import AsistenRehatModal from './AsistenRehatModal';
 import SocialAccountModal from './SocialAccountModal';
+import PushNotificationWidget from './PushNotificationWidget';
 import api from '../api';
 import { Heart } from 'lucide-react';
 
@@ -272,6 +273,9 @@ export default function Dashboard({ user, onLogout }) {
               </button>
             </div>
           </div>
+
+          {/* Real-time Web Push Notification Bar */}
+          <PushNotificationWidget isDarkMode={isDarkMode} />
 
           {/* Stats Cards */}
           <StatsCards stats={stats} isDarkMode={isDarkMode} />
