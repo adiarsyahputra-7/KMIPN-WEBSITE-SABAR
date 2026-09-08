@@ -14,6 +14,7 @@ import {
   Play,
   Mail,
   CheckCircle2,
+  Quote,
 } from 'lucide-react';
 import { Button } from './ui/Button';
 import PricingPage from './PricingPage';
@@ -670,6 +671,140 @@ export default function LandingPage({ onLoginClick }) {
                   </div>
                 </motion.div>
               ))}
+            </motion.div>
+
+            {/* ── KATA MUTIARA KESEHATAN MENTAL DARI TOKOH PSIKOLOGI DUNIA ── */}
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="mt-14 pt-10 border-t border-[#16587B]/15"
+            >
+              <div className="text-center max-w-2xl mx-auto mb-8">
+                <span
+                  className="inline-flex items-center gap-1.5 text-xs font-bold tracking-widest uppercase rounded-full px-3.5 py-1 mb-2.5 border shadow-2xs"
+                  style={{ color: COLORS.vBlue, backgroundColor: '#FFFFFF', borderColor: COLORS.bgBorder }}
+                >
+                  <Quote className="w-3 h-3 text-[#16587B]" />
+                  Refleksi &amp; Kesehatan Mental
+                </span>
+                <h3 className="text-xl sm:text-2xl font-extrabold font-['Plus_Jakarta_Sans']" style={{ color: COLORS.vBlue }}>
+                  Kata Tokoh Psikologi Dunia tentang Menjaga Ruang Diri
+                </h3>
+              </div>
+
+              {/* Grid 2 Quote Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+                {/* Quote 1: Viktor E. Frankl */}
+                <div
+                  className="relative rounded-2xl p-6 sm:p-7 border bg-white/90 backdrop-blur-sm shadow-sm hover:shadow-md transition-all flex flex-col justify-between overflow-hidden group"
+                  style={{ borderColor: COLORS.bgBorder }}
+                >
+                  {/* Foto Tokoh Samar di Tepi Kotak (Watermark) */}
+                  <div 
+                    className="absolute -right-2 top-2 w-44 h-52 sm:w-52 sm:h-60 pointer-events-none select-none opacity-15 transition-all duration-700 group-hover:opacity-25 group-hover:scale-105 z-0"
+                    style={{
+                      maskImage: 'radial-gradient(circle at 65% 45%, black 35%, transparent 75%)',
+                      WebkitMaskImage: 'radial-gradient(circle at 65% 45%, black 35%, transparent 75%)',
+                    }}
+                  >
+                    <img
+                      src="/images/viktor-frankl.png"
+                      alt="Dr. Viktor E. Frankl"
+                      className="w-full h-full object-cover object-top grayscale contrast-110"
+                    />
+                  </div>
+
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-9 h-9 rounded-xl bg-[#16587B]/10 border border-[#16587B]/15 flex items-center justify-center text-[#16587B]">
+                        <Quote className="w-4 h-4 fill-current" />
+                      </div>
+                      <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#FAF7F2]/90 backdrop-blur-xs text-[#16587B] border border-[#16587B]/15">
+                        Logoterapi &amp; Ketahanan Diri
+                      </span>
+                    </div>
+                    <blockquote className="text-base sm:text-[16px] font-medium leading-relaxed italic text-[#0D2738] mb-5 max-w-[90%]">
+                      "Di antara stimulus dan respons, selalu ada sebuah ruang. Di ruang itulah terletak kebebasan dan kekuatan kita untuk memilih kedamaian serta pertumbuhan batin kita."
+                    </blockquote>
+                  </div>
+
+                  <div className="relative z-10 pt-4 border-t border-[#16587B]/10 flex items-center gap-3">
+                    <img
+                      src="/images/viktor-frankl.png"
+                      alt="Dr. Viktor E. Frankl"
+                      className="w-10 h-10 rounded-full object-cover object-top border border-[#16587B]/25 shadow-xs shrink-0"
+                    />
+                    <div>
+                      <p className="text-sm font-bold font-['Plus_Jakarta_Sans']" style={{ color: COLORS.vBlue }}>
+                        Dr. Viktor E. Frankl
+                      </p>
+                      <p className="text-xs font-medium text-[#4F7085]">
+                        Psikiater, Neurolog &amp; Penulis 'Man's Search for Meaning'
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quote 2: Brené Brown */}
+                <div
+                  className="relative rounded-2xl p-6 sm:p-7 border bg-white/90 backdrop-blur-sm shadow-sm hover:shadow-md transition-all flex flex-col justify-between overflow-hidden group"
+                  style={{ borderColor: COLORS.bgBorder }}
+                >
+                  {/* Foto Tokoh Samar di Tepi Kotak (Watermark) */}
+                  <div 
+                    className="absolute -right-2 top-2 w-44 h-52 sm:w-52 sm:h-60 pointer-events-none select-none opacity-15 transition-all duration-700 group-hover:opacity-25 group-hover:scale-105 z-0"
+                    style={{
+                      maskImage: 'radial-gradient(circle at 65% 45%, black 35%, transparent 75%)',
+                      WebkitMaskImage: 'radial-gradient(circle at 65% 45%, black 35%, transparent 75%)',
+                    }}
+                  >
+                    <img
+                      src="/images/brene-brown.png"
+                      alt="Dr. Brené Brown, Ph.D."
+                      className="w-full h-full object-cover object-top grayscale contrast-110"
+                    />
+                  </div>
+
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-9 h-9 rounded-xl bg-[#16587B]/10 border border-[#16587B]/15 flex items-center justify-center text-[#16587B]">
+                        <Quote className="w-4 h-4 fill-current" />
+                      </div>
+                      <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#FAF7F2]/90 backdrop-blur-xs text-[#16587B] border border-[#16587B]/15">
+                        Batasan Emosional Sehat
+                      </span>
+                    </div>
+                    <blockquote className="text-base sm:text-[16px] font-medium leading-relaxed italic text-[#0D2738] mb-5 max-w-[90%]">
+                      "Kesehatan mental bermula saat kita berani menetapkan batasan: tidak semua suara dan kritik destruktif di dunia maya pantas mendapatkan ruang di dalam pikiran Anda."
+                    </blockquote>
+                  </div>
+
+                  <div className="relative z-10 pt-4 border-t border-[#16587B]/10 flex items-center gap-3">
+                    <img
+                      src="/images/brene-brown.png"
+                      alt="Dr. Brené Brown, Ph.D."
+                      className="w-10 h-10 rounded-full object-cover object-top border border-[#16587B]/25 shadow-xs shrink-0"
+                    />
+                    <div>
+                      <p className="text-sm font-bold font-['Plus_Jakarta_Sans']" style={{ color: COLORS.vBlue }}>
+                        Dr. Brené Brown, Ph.D.
+                      </p>
+                      <p className="text-xs font-medium text-[#4F7085]">
+                        Profesor Riset Psikologi &amp; Penulis 'Daring Greatly'
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Filosofi Singkat SABAR */}
+              <div className="mt-8 text-center">
+                <p className="text-xs sm:text-sm font-medium text-[#4F7085] max-w-2xl mx-auto leading-relaxed">
+                  <span className="font-bold text-[#16587B]">SABAR</span> hadir sebagai perisai cerdas yang memberi Anda jeda dan perlindungan tersebut — meredam toksisitas sebelum menyentuh ketenangan mental Anda saat berkarya.
+                </p>
+              </div>
             </motion.div>
           </div>
         </section>

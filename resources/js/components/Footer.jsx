@@ -113,21 +113,6 @@ export default function Footer({ onLoginClick }) {
               </div>
             </div>
 
-            {/* Trust Badges Bar (Sesuai 3 logo verifikasi di HelpGuide.org) */}
-            <div className="sm:col-span-3 pt-6 flex flex-wrap items-center gap-3">
-              <div className="px-3 py-2 rounded-xl bg-[#0B2738] border border-[#84B3CE]/25 text-[11px] font-bold text-[#F5EEDD] flex items-center gap-2 shadow-2xs">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                <span>KMIPN 2026 Verified</span>
-              </div>
-              <div className="px-3 py-2 rounded-xl bg-[#0B2738] border border-[#84B3CE]/25 text-[11px] font-bold text-[#F5EEDD] flex items-center gap-2 shadow-2xs">
-                <Zap className="w-4 h-4 text-amber-400" />
-                <span>Gemini 3.6 Flash Engine</span>
-              </div>
-              <div className="px-3 py-2 rounded-xl bg-[#0B2738] border border-[#84B3CE]/25 text-[11px] font-bold text-[#F5EEDD] flex items-center gap-2 shadow-2xs">
-                <Shield className="w-4 h-4 text-[#84B3CE]" />
-                <span>MaaS v1.0 Security</span>
-              </div>
-            </div>
           </div>
 
           {/* Kolom Kanan: Newsletter & CTA Amankan Akun (lg:col-span-5) */}
