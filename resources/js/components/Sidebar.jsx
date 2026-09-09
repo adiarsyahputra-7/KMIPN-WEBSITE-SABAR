@@ -10,11 +10,24 @@ import {
   HelpCircle, 
   ChevronRight,
   LogOut,
-  UserCheck
+  UserCheck,
+  X
 } from 'lucide-react';
 import SabarLogo from './SabarLogo';
 
-export default function Sidebar({ activeTab, setActiveTab, onOpenRehat, onOpenConnect, connectedAccount, stressLevel, user, onLogout }) {
+export default function Sidebar({ 
+  activeTab, 
+  setActiveTab, 
+  onOpenRehat, 
+  onOpenConnect, 
+  connectedAccount, 
+  stressLevel, 
+  user, 
+  onLogout,
+  isDarkMode = false,
+  isMobileOpen = false,
+  onCloseMobile
+}) {
   const isHighStress = stressLevel >= 65;
 
   const navigation = [
@@ -49,26 +62,59 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenRehat, onOpenCo
     }
   ];
 
-  return (
-    <aside className="w-64 bg-gradient-to-b from-[#16587B] via-[#0E3D54] to-[#0A293B] border-r border-[#16587B]/20 flex flex-col h-screen sticky top-0 shrink-0 select-none">
-      
+  const handleNavClick = (item) => {
+    if (item.action) {
+      item.action();
+    } else {
+      setActiveTab(item.id);
+    }
+    if (onCloseMobile) {
+      onCloseMobile();
+    }
+  };
+
+  const sidebarContent = (
+    <div className={`flex flex-col h-full select-none ${
+      isDarkMode 
+        ? 'bg-[#081724] text-slate-100 border-r border-[#16587B]/25' 
+        : 'bg-[#FAF7F2] text-[#0D2738] border-r border-[#16587B]/15'
+    }`}>
       {/* Brand Header */}
-      <div className="h-16 px-5 flex items-center border-b border-[#16587B]/20">
+      <div className={`h-16 px-5 flex items-center justify-between border-b ${
+        isDarkMode ? 'border-[#16587B]/25 bg-[#0B1E2E]' : 'border-[#16587B]/12 bg-white/70'
+      }`}>
         <SabarLogo 
           variant="full" 
-          theme="navy-gold" 
+          theme={isDarkMode ? 'navy-gold' : 'navy-gold'} 
           size="md" 
           showSubtitle={true}
           showBadge={true}
           badgeText="Pro"
         />
+
+        {/* Close Button on Mobile */}
+        {onCloseMobile && (
+          <button
+            onClick={onCloseMobile}
+            className={`p-1.5 rounded-xl lg:hidden transition-colors ${
+              isDarkMode 
+                ? 'text-[#84B3CE] hover:text-white hover:bg-white/10' 
+                : 'text-[#4F7085] hover:text-[#0D2738] hover:bg-[#16587B]/10'
+            }`}
+            aria-label="Tutup Menu"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
       {/* Navigation List */}
       <div className="flex-1 px-3 py-5 overflow-y-auto space-y-6">
         {navigation.map((section, idx) => (
           <div key={idx} className="space-y-1">
-            <p className="px-3 text-[10px] font-bold tracking-wider text-[#84B3CE]/60 uppercase">
+            <p className={`px-3 text-[10px] font-bold tracking-wider uppercase ${
+              isDarkMode ? 'text-[#84B3CE]/60' : 'text-[#16587B]/70'
+            }`}>
               {section.group}
             </p>
             {section.items.map((item) => {
@@ -77,29 +123,33 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenRehat, onOpenCo
               return (
                 <button
                   key={item.id}
-                  onClick={() => {
-                    if (item.action) {
-                      item.action();
-                    } else {
-                      setActiveTab(item.id);
-                    }
-                  }}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                  onClick={() => handleNavClick(item)}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer ${
                     isActive
-                      ? 'bg-white/10 text-[#F5EEDD] font-bold shadow-xs'
-                      : 'text-[#84B3CE]/80 hover:bg-white/5 hover:text-white'
+                      ? 'bg-[#16587B] text-[#F5EEDD] shadow-md shadow-[#16587B]/20 font-bold'
+                      : isDarkMode
+                        ? 'text-[#84B3CE]/80 hover:bg-white/5 hover:text-white'
+                        : 'text-[#4F7085] hover:bg-[#16587B]/8 hover:text-[#16587B]'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-[#F5EEDD]' : 'text-[#84B3CE]/60'}`} />
+                    <Icon className={`w-4 h-4 transition-colors ${
+                      isActive 
+                        ? 'text-[#F5EEDD]' 
+                        : isDarkMode ? 'text-[#84B3CE]/60' : 'text-[#16587B]/70'
+                    }`} />
                     <span>{item.label}</span>
                   </div>
 
                   {item.badge && (
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
                       item.badgeAlert
-                        ? 'bg-rose-500/25 text-rose-300 border border-rose-500/30 animate-pulse'
-                        : 'bg-white/10 text-[#84B3CE] border border-white/5'
+                        ? 'bg-rose-500/20 text-rose-600 border border-rose-500/30 animate-pulse'
+                        : isActive
+                          ? 'bg-white/20 text-[#F5EEDD]'
+                          : isDarkMode
+                            ? 'bg-white/10 text-[#84B3CE] border border-white/5'
+                            : 'bg-[#16587B]/10 text-[#16587B] border border-[#16587B]/15'
                     }`}>
                       {item.badge}
                     </span>
@@ -112,17 +162,37 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenRehat, onOpenCo
       </div>
 
       {/* Connected Account Mini Pill */}
-      <div className="p-3 mx-3 mb-3 rounded-xl bg-[#082230]/60 border border-[#16587B]/20">
+      <div className={`p-3 mx-3 mb-3 rounded-2xl border transition-all ${
+        isDarkMode 
+          ? 'bg-[#0B1E2E]/80 border-[#16587B]/25' 
+          : 'bg-white border-[#16587B]/15 shadow-xs'
+      }`}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
-            <span className="text-[11px] font-medium text-[#F5EEDD]/95 truncate max-w-[130px]">
-              {connectedAccount?.handle || "@sabar_brand"}
-            </span>
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+            <div className="truncate">
+              <span className={`text-[11px] font-bold truncate block ${
+                isDarkMode ? 'text-[#F5EEDD]' : 'text-[#0D2738]'
+              }`}>
+                {connectedAccount?.handle || "@sabar_brand"}
+              </span>
+              <span className={`text-[9px] block ${
+                isDarkMode ? 'text-[#84B3CE]/60' : 'text-[#4F7085]'
+              }`}>
+                {connectedAccount?.platform ? connectedAccount.platform.toUpperCase() : 'INSTAGRAM'}
+              </span>
+            </div>
           </div>
           <button 
-            onClick={onOpenConnect}
-            className="text-[10px] font-bold text-[#84B3CE] hover:text-[#F5EEDD]"
+            onClick={() => {
+              if (onOpenConnect) onOpenConnect();
+              if (onCloseMobile) onCloseMobile();
+            }}
+            className={`text-[10px] font-bold px-2 py-1 rounded-lg border transition-all shrink-0 cursor-pointer ${
+              isDarkMode
+                ? 'text-[#84B3CE] hover:text-[#F5EEDD] border-[#16587B]/30 hover:bg-white/5'
+                : 'text-[#16587B] hover:text-[#0D2738] border-[#16587B]/20 bg-[#FAF7F2] hover:bg-[#F5EEDD]'
+            }`}
           >
             Ubah
           </button>
@@ -130,27 +200,66 @@ export default function Sidebar({ activeTab, setActiveTab, onOpenRehat, onOpenCo
       </div>
 
       {/* User Footer Profile */}
-      <div className="p-4 border-t border-[#16587B]/20 flex items-center justify-between bg-[#071E2B]">
-        <div className="flex items-center gap-2.5">
+      <div className={`p-3.5 border-t flex items-center justify-between ${
+        isDarkMode 
+          ? 'border-[#16587B]/25 bg-[#061420]' 
+          : 'border-[#16587B]/15 bg-white/60'
+      }`}>
+        <div className="flex items-center gap-2.5 min-w-0">
           <img
             src={user?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"}
-            alt={user?.name || "Kalyca Kyla"}
-            className="w-8 h-8 rounded-full object-cover border border-[#16587B]/30"
+            alt={user?.name || "Creator SABAR"}
+            className={`w-8 h-8 rounded-full object-cover border shrink-0 ${
+              isDarkMode ? 'border-[#16587B]/30' : 'border-[#16587B]/20'
+            }`}
           />
-          <div className="text-left">
-            <p className="text-xs font-semibold text-white">{user?.name || "Kalyca Kyla"}</p>
-            <p className="text-[10px] text-[#84B3CE]/70">{user?.role || "Social Media Lead"}</p>
+          <div className="text-left truncate">
+            <p className={`text-xs font-bold truncate ${isDarkMode ? 'text-white' : 'text-[#0D2738]'}`}>
+              {user?.name || "Kalyca Kyla"}
+            </p>
+            <p className={`text-[10px] truncate ${isDarkMode ? 'text-[#84B3CE]/70' : 'text-[#4F7085]'}`}>
+              {user?.role || "Creator"}
+            </p>
           </div>
         </div>
         <button 
           onClick={onLogout}
           title="Keluar (Logout)"
-          className="p-1.5 text-[#84B3CE]/60 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all"
+          className={`p-1.5 rounded-xl transition-all cursor-pointer ${
+            isDarkMode 
+              ? 'text-[#84B3CE]/70 hover:text-rose-400 hover:bg-rose-500/10' 
+              : 'text-[#4F7085] hover:text-rose-600 hover:bg-rose-50'
+          }`}
         >
           <LogOut className="w-4 h-4" />
         </button>
       </div>
+    </div>
+  );
 
-    </aside>
+  return (
+    <>
+      {/* Desktop Sticky Sidebar */}
+      <aside className="w-64 shrink-0 sticky top-0 h-screen hidden lg:block z-30">
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile Slide-Over Drawer with Backdrop */}
+      {isMobileOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden flex">
+          {/* Backdrop Blur Overlay */}
+          <div 
+            className="fixed inset-0 bg-[#0D2738]/50 backdrop-blur-xs transition-opacity duration-300"
+            onClick={onCloseMobile}
+            aria-hidden="true"
+          />
+
+          {/* Drawer Panel */}
+          <div className="relative w-72 max-w-[85vw] h-full shadow-2xl z-10 transition-transform duration-300">
+            {sidebarContent}
+          </div>
+        </div>
+      )}
+    </>
   );
 }

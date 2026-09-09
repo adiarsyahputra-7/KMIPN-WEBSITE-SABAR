@@ -12,15 +12,15 @@ import {
 export default function StatsCards({ stats, isDarkMode }) {
   const getIconBg = (colorName) => {
     if (!isDarkMode) {
-      if (colorName === 'blue') return 'bg-blue-50 text-blue-600 border-blue-100';
-      if (colorName === 'emerald') return 'bg-emerald-50 text-emerald-600 border-emerald-100';
-      if (colorName === 'amber') return 'bg-amber-50 text-amber-600 border-amber-100';
-      if (colorName === 'rose') return 'bg-rose-50 text-rose-600 border-rose-100';
+      if (colorName === 'blue') return 'bg-[#16587B]/10 text-[#16587B] border-[#16587B]/20';
+      if (colorName === 'emerald') return 'bg-emerald-50 text-emerald-700 border-emerald-200/80';
+      if (colorName === 'amber') return 'bg-amber-50 text-amber-700 border-amber-200/80';
+      if (colorName === 'rose') return 'bg-rose-50 text-rose-700 border-rose-200/80';
     } else {
-      if (colorName === 'blue') return 'bg-blue-950/30 text-blue-400 border-blue-900/40';
-      if (colorName === 'emerald') return 'bg-emerald-950/30 text-emerald-400 border-emerald-900/40';
-      if (colorName === 'amber') return 'bg-amber-950/30 text-amber-400 border-amber-900/40';
-      if (colorName === 'rose') return 'bg-rose-950/30 text-rose-400 border-rose-900/40';
+      if (colorName === 'blue') return 'bg-[#16587B]/30 text-[#84B3CE] border-[#16587B]/40';
+      if (colorName === 'emerald') return 'bg-emerald-950/40 text-emerald-400 border-emerald-800/40';
+      if (colorName === 'amber') return 'bg-amber-950/40 text-amber-400 border-amber-800/40';
+      if (colorName === 'rose') return 'bg-rose-950/40 text-rose-400 border-rose-800/40';
     }
     return '';
   };
@@ -67,39 +67,41 @@ export default function StatsCards({ stats, isDarkMode }) {
         return (
           <div
             key={idx}
-            className={`p-5 rounded-2xl border transition-all duration-300 space-y-3 ${
+            className={`p-5 rounded-2xl sm:rounded-3xl border transition-all duration-300 space-y-3 hover:-translate-y-0.5 ${
               isDarkMode 
-                ? 'bg-[#0B1522] border-[#16587B]/20 shadow-md' 
-                : 'bg-white border-slate-200/80 shadow-sm hover:shadow-md'
+                ? 'bg-[#0B1E2E] border-[#16587B]/25 shadow-md hover:shadow-[#16587B]/15 hover:border-[#16587B]/40' 
+                : 'bg-white border-[#16587B]/15 shadow-xs hover:shadow-md hover:shadow-[#16587B]/8 hover:border-[#16587B]/30'
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className={`text-xs font-semibold ${isDarkMode ? 'text-[#84B3CE]/70' : 'text-slate-500'}`}>
+              <span className={`text-xs font-bold ${isDarkMode ? 'text-[#84B3CE]/80' : 'text-[#4F7085]'}`}>
                 {card.title}
               </span>
-              <div className={`p-2 rounded-xl border ${getIconBg(card.color)}`}>
+              <div className={`p-2 rounded-xl border ${getIconBg(card.color)} shadow-2xs`}>
                 <Icon className="w-4 h-4" />
               </div>
             </div>
 
             <div className="flex items-baseline justify-between">
-              <span className={`text-2xl font-bold tracking-tight font-['Plus_Jakarta_Sans'] ${
-                isDarkMode ? 'text-[#F5EEDD]' : 'text-slate-900'
+              <span className={`text-2xl sm:text-3xl font-extrabold tracking-tight font-['Plus_Jakarta_Sans'] ${
+                isDarkMode ? 'text-[#F5EEDD]' : 'text-[#0D2738]'
               }`}>
                 {card.value}
               </span>
-              <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
-                isDarkMode ? 'bg-[#16587B]/25 text-[#84B3CE]' : 'bg-slate-100 text-slate-600'
+              <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
+                isDarkMode 
+                  ? 'bg-[#16587B]/25 text-[#84B3CE] border-[#16587B]/30' 
+                  : 'bg-[#FAF7F2] text-[#16587B] border-[#16587B]/15'
               }`}>
                 {card.trend}
               </span>
             </div>
 
-            <div className={`text-[11px] border-t pt-2 flex items-center justify-between ${
-              isDarkMode ? 'text-[#84B3CE]/50 border-[#16587B]/15' : 'text-slate-400 border-slate-100'
+            <div className={`text-[11px] border-t pt-2 flex items-center justify-between font-medium ${
+              isDarkMode ? 'text-[#84B3CE]/60 border-[#16587B]/20' : 'text-[#4F7085] border-[#16587B]/10'
             }`}>
               <span>{card.subtext}</span>
-              <span className={`text-[10px] ${isDarkMode ? 'text-[#84B3CE]/40' : 'text-slate-400'}`}>Sinkronisasi Realtime</span>
+              <span className={`text-[10px] ${isDarkMode ? 'text-[#84B3CE]/45' : 'text-[#84B3CE]'}`}>Sinkronisasi Realtime</span>
             </div>
           </div>
         );

@@ -8,10 +8,20 @@ import {
   ShieldAlert,
   CheckCircle2,
   Sun,
-  Moon
+  Moon,
+  Menu
 } from 'lucide-react';
 
-export default function Navbar({ onOpenRehat, onOpenConnect, connectedAccount, stressLevel, activeTab, isDarkMode, toggleDarkMode }) {
+export default function Navbar({ 
+  onOpenRehat, 
+  onOpenConnect, 
+  connectedAccount, 
+  stressLevel, 
+  activeTab, 
+  isDarkMode, 
+  toggleDarkMode,
+  onToggleMobileSidebar
+}) {
   const isHighStress = stressLevel >= 65;
 
   const getPageTitle = () => {
@@ -25,54 +35,68 @@ export default function Navbar({ onOpenRehat, onOpenConnect, connectedAccount, s
   };
 
   return (
-    <header className={`h-16 px-6 lg:px-8 border-b transition-all duration-300 flex items-center justify-between sticky top-0 z-30 ${
+    <header className={`h-16 px-4 sm:px-6 lg:px-8 border-b transition-all duration-300 flex items-center justify-between sticky top-0 z-30 ${
       isDarkMode 
-        ? 'bg-[#0B1522] border-[#16587B]/20 text-white' 
-        : 'bg-white border-slate-200/80 text-slate-900'
+        ? 'bg-[#081724]/90 backdrop-blur-md border-[#16587B]/25 text-white' 
+        : 'bg-white/90 backdrop-blur-md border-[#16587B]/15 text-[#0D2738]'
     }`}>
       
-      {/* Left: Breadcrumbs / Title */}
+      {/* Left: Mobile Hamburger & Breadcrumbs */}
       <div className="flex items-center gap-3">
+        {/* Mobile Hamburger Toggle */}
+        <button
+          onClick={onToggleMobileSidebar}
+          className={`p-2 rounded-xl lg:hidden transition-colors cursor-pointer ${
+            isDarkMode 
+              ? 'text-[#84B3CE] hover:text-white hover:bg-white/10' 
+              : 'text-[#16587B] hover:text-[#0D2738] hover:bg-[#16587B]/10'
+          }`}
+          aria-label="Buka Menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
         <div>
-          <h1 className={`text-sm font-bold font-['Plus_Jakarta_Sans'] ${isDarkMode ? 'text-[#F5EEDD]' : 'text-slate-900'}`}>
+          <h1 className={`text-xs sm:text-sm font-extrabold font-['Plus_Jakarta_Sans'] tracking-tight ${
+            isDarkMode ? 'text-[#F5EEDD]' : 'text-[#16587B]'
+          }`}>
             {getPageTitle()}
           </h1>
-          <div className="flex items-center gap-1.5 text-[11px]">
-            <span className={isDarkMode ? 'text-[#84B3CE]/60' : 'text-slate-500'}>Platform</span>
-            <span className={isDarkMode ? 'text-[#84B3CE]/40' : 'text-slate-400'}>/</span>
-            <span className={`font-medium ${isDarkMode ? 'text-[#84B3CE]' : 'text-slate-700'}`}>
-              {connectedAccount?.name || "SABAR Official Brand"}
+          <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px]">
+            <span className={isDarkMode ? 'text-[#84B3CE]/60' : 'text-[#4F7085]'}>Platform</span>
+            <span className={isDarkMode ? 'text-[#84B3CE]/40' : 'text-[#84B3CE]'}>/</span>
+            <span className={`font-semibold ${isDarkMode ? 'text-[#84B3CE]' : 'text-[#0D2738]'}`}>
+              {connectedAccount?.handle || "SABAR Official"}
             </span>
           </div>
         </div>
       </div>
 
       {/* Right: Quick Actions & Status */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         
         {/* Live Filter Indicator */}
-        <div className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border ${
+        <div className={`hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold border ${
           isDarkMode 
-            ? 'bg-emerald-950/30 border-emerald-500/20 text-emerald-300' 
-            : 'bg-emerald-50 border-emerald-200/70 text-emerald-800'
+            ? 'bg-emerald-950/40 border-emerald-500/25 text-emerald-300' 
+            : 'bg-emerald-50 border-emerald-200 text-emerald-800'
         }`}>
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.7)]"></span>
           <span>Perisai AI Aktif</span>
         </div>
 
         {/* Asisten Rehat Action Button */}
         <button
           onClick={onOpenRehat}
-          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all shadow-sm ${
+          className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-full text-xs font-bold transition-all shadow-md cursor-pointer ${
             isHighStress
               ? 'bg-rose-600 text-white hover:bg-rose-700 animate-bounce'
-              : isDarkMode 
-                ? 'bg-[#16587B] text-[#F5EEDD] hover:bg-[#16587B]/80' 
-                : 'bg-slate-900 text-white hover:bg-slate-800'
+              : 'bg-[#16587B] text-[#F5EEDD] hover:bg-[#104460] shadow-[#16587B]/20 hover:scale-[1.02] active:scale-[0.98]'
           }`}
         >
           <Coffee className="w-3.5 h-3.5" />
-          <span>Asisten Rehat</span>
+          <span className="hidden sm:inline">Asisten Rehat</span>
+          <span className="sm:hidden">Rehat</span>
           {isHighStress && (
             <span className="w-2 h-2 rounded-full bg-white animate-ping"></span>
           )}
@@ -81,11 +105,11 @@ export default function Navbar({ onOpenRehat, onOpenConnect, connectedAccount, s
         {/* Toggle Dark Mode Button */}
         <button
           onClick={toggleDarkMode}
-          title={isDarkMode ? "Aktifkan Mode Terang" : "Aktifkan Mode Gelap"}
-          className={`p-2 rounded-xl transition-all ${
+          title={isDarkMode ? "Mode Terang" : "Mode Gelap"}
+          className={`p-2 rounded-xl transition-all cursor-pointer ${
             isDarkMode 
               ? 'text-[#84B3CE] hover:text-[#F5EEDD] hover:bg-white/10' 
-              : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+              : 'text-[#4F7085] hover:text-[#16587B] hover:bg-[#16587B]/10'
           }`}
         >
           {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -94,10 +118,10 @@ export default function Navbar({ onOpenRehat, onOpenConnect, connectedAccount, s
         {/* Notification Bell */}
         <button 
           title="Notifikasi"
-          className={`p-2 rounded-xl transition-all relative ${
+          className={`p-2 rounded-xl transition-all relative cursor-pointer ${
             isDarkMode 
               ? 'text-[#84B3CE] hover:text-white hover:bg-white/10' 
-              : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+              : 'text-[#4F7085] hover:text-[#16587B] hover:bg-[#16587B]/10'
           }`}
         >
           <Bell className="w-4 h-4" />

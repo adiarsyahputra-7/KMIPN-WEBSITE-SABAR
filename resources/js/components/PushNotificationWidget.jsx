@@ -22,14 +22,14 @@ export default function PushNotificationWidget({ isDarkMode = true }) {
   return (
     <div className="flex flex-col gap-2">
       <div
-        className={`flex items-center justify-between gap-3 px-3.5 py-2 rounded-2xl border transition-all duration-300 ${
+        className={`flex items-center justify-between gap-3 px-4 py-2.5 rounded-2xl sm:rounded-full border transition-all duration-300 ${
           isDarkMode
             ? isSubscribed
-              ? 'bg-[#16587B]/15 border-emerald-500/30 text-slate-200'
-              : 'bg-[#0F2238]/60 border-[#16587B]/30 text-slate-300'
+              ? 'bg-[#16587B]/20 border-emerald-500/30 text-[#F5EEDD]'
+              : 'bg-[#0B1E2E] border-[#16587B]/25 text-slate-300'
             : isSubscribed
-              ? 'bg-emerald-50/80 border-emerald-200 text-slate-700'
-              : 'bg-slate-50 border-slate-200 text-slate-600'
+              ? 'bg-emerald-50/90 border-emerald-200/80 text-emerald-900 shadow-xs'
+              : 'bg-white border-[#16587B]/15 text-[#0D2738] shadow-xs'
         }`}
       >
         {/* Status indicator & Text */}
