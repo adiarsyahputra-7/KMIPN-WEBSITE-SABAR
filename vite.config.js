@@ -12,4 +12,17 @@ export default defineConfig({
         react(),
         tailwindcss(),
     ],
+    server: {
+        watch: {
+            // Abaikan file binary & executable agar dev server tidak crash
+            ignored: [
+                '**/*.exe',
+                '**/*.dll',
+                '**/cloudflared*',
+                '**/node_modules/**',
+                '**/public/build/**',
+                '**/storage/**',
+            ],
+        },
+    },
 });
