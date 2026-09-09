@@ -65,7 +65,7 @@ function InputField({ label, icon, children }) {
 export default function LoginPage({ onLogin, onClose }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('kalyca@sabar.com');
-  const [password, setPassword] = useState('admin123');
+  const [password, setPassword] = useState('password');
   const [passwordConfirmation, setPasswordConfirmation] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(true);
@@ -83,15 +83,35 @@ export default function LoginPage({ onLogin, onClose }) {
     if (onLogin) onLogin(userData);
   };
 
-  const handleQuickDemoLogin = (role) => {
+  const handleQuickDemoLogin = async (role) => {
     setError('');
     setSuccessMsg('');
-    if (role === 'admin') {
-      setEmail('kalyca@sabar.com');
-      setPassword('admin123');
-    } else {
-      setEmail('reza@sabar.com');
-      setPassword('kreator123');
+    const demoEmail = role === 'creator' ? 'adiar@sabar.com' : 'kalyca@sabar.com';
+    const demoPassword = 'password';
+    setEmail(demoEmail);
+    setPassword(demoPassword);
+    setLoading(true);
+
+    try {
+      const res = await api.post('/auth/login', {
+        email: demoEmail,
+        password: demoPassword,
+      });
+      const token = res.data?.token || res.data?.access_token || res.data?.authorisation?.token;
+      const userData = res.data?.user || res.data?.data?.user || res.data;
+      if (token && userData) {
+        processLoginResponse(userData, token);
+      } else {
+        throw new Error(res.data?.message || 'Gagal memproses sesi login.');
+      }
+    } catch (err) {
+      const serverMsg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        'Demo login gagal. Pastikan seeder database sudah dijalankan.';
+      setError(serverMsg);
+      setLoading(false);
     }
   };
 
@@ -269,9 +289,9 @@ export default function LoginPage({ onLogin, onClose }) {
                     onClick={() => handleQuickDemoLogin('creator')}
                     className="py-1.5 px-3 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer border text-center"
                     style={{
-                      background: email === 'reza@sabar.com' ? COLORS.vBlue : '#FFFFFF',
-                      color: email === 'reza@sabar.com' ? '#FFFFFF' : COLORS.vBlue,
-                      borderColor: email === 'reza@sabar.com' ? COLORS.vBlue : 'rgba(22,88,123,0.2)',
+                      background: email === 'adiar@sabar.com' ? COLORS.vBlue : '#FFFFFF',
+                      color: email === 'adiar@sabar.com' ? '#FFFFFF' : COLORS.vBlue,
+                      borderColor: email === 'adiar@sabar.com' ? COLORS.vBlue : 'rgba(22,88,123,0.2)',
                     }}
                   >
                     Kreator Konten
