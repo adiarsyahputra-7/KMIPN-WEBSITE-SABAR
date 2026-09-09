@@ -173,7 +173,7 @@ function App() {
           // Mount LoginPage di atas LandingPage
           const overlay = document.createElement('div');
           overlay.id = 'login-overlay';
-          overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(6,14,26,0.7);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;';
+          overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#FAF7F2;overflow-y:auto;';
           document.body.appendChild(overlay);
 
           const root = ReactDOM.createRoot(overlay);

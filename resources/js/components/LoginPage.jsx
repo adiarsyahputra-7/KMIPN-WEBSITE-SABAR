@@ -1,368 +1,445 @@
 import React, { useState } from 'react';
 import {
-  ShieldCheck,
   Eye,
   EyeOff,
   ArrowRight,
-  ArrowLeft,
   X,
   Lock,
   Mail,
-  Zap,
+  User,
   AlertCircle,
   CheckCircle2,
+  Sparkles,
 } from 'lucide-react';
 import api from '../api';
-import SabarLogo from './SabarLogo';
 
+// ─── PALET WARNA SABAR (TEMA CERAH, ADEM & ELEGAN) ────────────────────────
+const COLORS = {
+  vBlue: '#16587B',
+  rockBlue: '#2A6E94',
+  rockLight: '#84B3CE',
+  merino: '#F5EEDD',
+  bg: '#FAF7F2',
+  bgCard: '#FFFFFF',
+  bgSubtle: '#F6F2EA',
+  border: 'rgba(22, 88, 123, 0.14)',
+  dark: '#0D2738',
+  muted: '#4F7085',
+};
+
+// ─── Google Icon (SVG Ringan) ──────────────────────────────────────────────
+const GoogleIcon = () => (
+  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+  </svg>
+);
+
+// ─── Input Field Wrapper ───────────────────────────────────────────────────
+function InputField({ label, icon, children }) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <div className="space-y-1">
+      <label className="block text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-[#4F7085]">
+        {label}
+      </label>
+      <div
+        className="flex items-center rounded-xl border transition-all duration-200 bg-white"
+        style={{
+          borderColor: focused ? COLORS.vBlue : 'rgba(22, 88, 123, 0.18)',
+          boxShadow: focused ? '0 0 0 3px rgba(22, 88, 123, 0.10)' : 'none',
+        }}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+      >
+        <span className="pl-3 shrink-0 text-[#84B3CE]">{icon}</span>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Fullscreen Component ─────────────────────────────────────────────
 export default function LoginPage({ onLogin, onClose }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('kalyca@sabar.com');
-  const [password, setPassword] = useState('password');
+  const [password, setPassword] = useState('admin123');
+  const [passwordConfirmation, setPasswordConfirmation] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
-  const [loading, setLoading] = useState(false);
+  const [remember, setRemember] = useState(true);
   const [isSignUp, setIsSignUp] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  // ─── HELPER: Proses respons login dan set state user ──────────────────────
-  const processLoginResponse = (data) => {
-    localStorage.setItem('auth_token', data.token);
-    onLogin({
-      name: data.user.name,
-      email: data.user.email,
-      role: data.user.role || 'creator',
-      plan: data.user.plan || 'Creator Pro Tier',
-      avatar: data.user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
-    });
+  const processLoginResponse = (userData, token) => {
+    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('token', token);
+    localStorage.setItem('auth_token', token);
+    localStorage.setItem('isLoggedIn', 'true');
+    window.dispatchEvent(new Event('auth-change'));
+    if (onLogin) onLogin(userData);
   };
 
-  // ─── SUBMIT FORM (Login / Register) ───────────────────────────────────────
-  const handleSubmit = async (e) => {
-    e?.preventDefault();
+  const handleQuickDemoLogin = (role) => {
     setError('');
     setSuccessMsg('');
-    setLoading(true);
+    if (role === 'admin') {
+      setEmail('kalyca@sabar.com');
+      setPassword('admin123');
+    } else {
+      setEmail('reza@sabar.com');
+      setPassword('kreator123');
+    }
+  };
 
-    const endpoint = isSignUp ? '/auth/register' : '/auth/login';
-    const payload = isSignUp
-      ? { name, email, password, role: 'creator' }
-      : { email, password };
+  const handleSubmit = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccessMsg('');
 
     try {
-      const { data } = await api.post(endpoint, payload);
       if (isSignUp) {
-        setSuccessMsg('Akun berhasil dibuat! Mengarahkan ke dashboard...');
-        setTimeout(() => processLoginResponse(data), 800);
+        if (!name.trim()) throw new Error('Nama lengkap wajib diisi');
+        if (password !== passwordConfirmation) {
+          throw new Error('Konfirmasi kata sandi tidak cocok');
+        }
+        const res = await api.post('/auth/register', {
+          name: name.trim(),
+          email: email.trim(),
+          password,
+          password_confirmation: passwordConfirmation,
+        });
+        if (res.data?.user && res.data?.token) {
+          processLoginResponse(res.data.user, res.data.token);
+        } else {
+          setSuccessMsg('Pendaftaran berhasil! Silakan masuk.');
+          setIsSignUp(false);
+        }
       } else {
-        processLoginResponse(data);
+        const res = await api.post('/auth/login', {
+          email: email.trim(),
+          password,
+        });
+        const token = res.data?.token || res.data?.access_token || res.data?.authorisation?.token;
+        const userData = res.data?.user || res.data?.data?.user || res.data;
+        if (token && userData) {
+          processLoginResponse(userData, token);
+        } else {
+          throw new Error(res.data?.message || 'Gagal memproses sesi login.');
+        }
       }
     } catch (err) {
-      const msg = err.response?.data?.message
-        || (isSignUp ? 'Pendaftaran gagal. Periksa kembali data Anda.' : 'Email atau password tidak valid.');
-      setError(msg);
+      const serverMsg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        'Terjadi kesalahan saat memproses data.';
+      setError(serverMsg);
     } finally {
       setLoading(false);
     }
   };
 
-  // ─── QUICK DEMO LOGIN (Untuk Demo KMIPN) ──────────────────────────────────
-  const handleQuickDemoLogin = async (role) => {
-    setError('');
-    setLoading(true);
-    // Email sesuai UserSeeder.php
-    const demoEmail = role === 'creator' ? 'adiar@sabar.com' : 'kalyca@sabar.com';
-
-    try {
-      const { data } = await api.post('/auth/login', {
-        email: demoEmail,
-        password: 'password',
-      });
-      processLoginResponse(data);
-    } catch (err) {
-      const msg = err.response?.data?.message || 'Demo login gagal. Pastikan seeder sudah dijalankan.';
-      setError(msg);
-      setLoading(false);
-    }
+  const handleGoogleLogin = () => {
+    window.location.href = '/auth/google';
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col md:flex-row bg-white font-sans overflow-hidden">
+    <div
+      className="fixed inset-0 z-[9999] w-full h-screen overflow-y-auto lg:overflow-hidden flex flex-col font-sans selection:bg-[#16587B] selection:text-white"
+      style={{ backgroundColor: COLORS.bg }}
+    >
+      {/* Background Grid Pattern Halus & Ringan */}
+      <div
+        className="fixed inset-0 pointer-events-none opacity-[0.04] select-none"
+        style={{
+          backgroundImage: `linear-gradient(${COLORS.vBlue} 1px, transparent 1px), linear-gradient(90deg, ${COLORS.vBlue} 1px, transparent 1px)`,
+          backgroundSize: '48px 48px',
+        }}
+      />
 
-      {/* ── Left Pane: Brand Presentation Banner ────────────────────────────── */}
-      <div 
-        className="w-full md:w-[50%] lg:w-[52%] bg-[#0B1D33] relative min-h-[500px] md:min-h-screen shrink-0 flex flex-col justify-between p-8 sm:p-14 lg:p-20 overflow-hidden"
-      >
-        {/* Decorative background glow & subtle grid pattern */}
-        <div className="absolute inset-0 pointer-events-none" style={{
-          background: 'radial-gradient(circle at 30% 40%, rgba(22, 87, 123, 0.35) 0%, rgba(11, 29, 51, 0.95) 70%)'
-        }} />
-        <div className="absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-[#16587B]/20 blur-3xl pointer-events-none" />
+      {/* Ambient Soft Glow Orbs */}
+      <div
+        className="fixed top-0 left-1/4 w-[600px] h-[350px] pointer-events-none opacity-40 select-none"
+        style={{
+          background: 'radial-gradient(ellipse at 50% 0%, rgba(132,179,206,0.3) 0%, rgba(245,238,221,0.5) 45%, transparent 70%)',
+        }}
+      />
 
-        {/* Top Brand Header & Back Button */}
-        <div className="relative z-10 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <SabarLogo variant="icon" size="sm" theme="navy-gold" />
-            <span className="text-xl font-extrabold tracking-wider font-['Plus_Jakarta_Sans'] text-[#F4EAD2]">
-              SABAR
-            </span>
-          </div>
+      {/* Tombol Close di Pojok Kanan Atas */}
+      {onClose && (
+        <button
+          onClick={onClose}
+          aria-label="Tutup Halaman Login"
+          className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 p-2 sm:p-2.5 rounded-full bg-slate-100/90 hover:bg-slate-200 text-[#16587B] border border-[#16587B]/15 shadow-sm transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      )}
 
-          <button
-            onClick={() => onClose ? onClose() : (window.location.href = '/')}
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#16587B]/40 hover:bg-[#16587B]/70 border border-[#84B3CE]/30 text-[#F4EAD2] text-xs font-semibold transition-all duration-300 hover:scale-105 cursor-pointer"
-          >
-            <ArrowLeft className="w-3.5 h-3.5 text-[#84B3CE]" />
-            <span>Kembali ke Beranda</span>
-          </button>
-        </div>
+      {/* Main Fullscreen Split Layout */}
+      <div className="relative z-10 w-full h-full flex-1 flex flex-col lg:flex-row items-stretch">
 
-        {/* Center Hero Presentation Text */}
-        <div className="relative z-10 my-auto space-y-6 py-10 max-w-lg">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold font-['Plus_Jakarta_Sans'] tracking-tight leading-[1.15] text-[#F4EAD2]">
-            Sistem Analisis Bullying &amp; Asisten Rehat
-          </h1>
-
-          <p className="text-sm sm:text-base text-[#84B3CE] leading-relaxed font-light">
-            Mencegat narasi negatif secara real-time demi ruang kerja digital yang lebih humanis, sehat, dan berkelanjutan.
-          </p>
-        </div>
-      </div>
-
-      {/* ── Right Pane: Form ─────────────────────────────────────────────────── */}
-      <div className="w-full md:w-[50%] lg:w-[48%] p-8 sm:p-14 lg:p-20 flex flex-col justify-between bg-white min-h-screen overflow-y-auto relative">
-
-        {/* Top Bar: Close Button */}
-        <div className="flex items-center justify-end pb-2">
-          <button
-            onClick={() => onClose ? onClose() : (window.location.href = '/')}
-            className="p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
-            title="Tutup & Kembali ke Beranda"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <div className="max-w-md w-full mx-auto my-auto space-y-7">
-
-          {/* Greeting Header */}
-          <div className="space-y-1.5">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Halo Rekan Kreator & Agensi !
-            </p>
-            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 font-['Plus_Jakarta_Sans']">
-              {isSignUp ? 'Daftar Akun Baru' : (
-                <>
-                  <span className="text-[#16587B]">Masuk</span> ke Akun Anda
-                </>
-              )}
-            </h2>
-          </div>
-
-          {/* Quick Demo Access Bar */}
-          <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-2 shadow-2xs">
-            <div className="flex items-center gap-1.5 pl-1.5">
-              <Zap className="w-4 h-4 text-amber-500 fill-amber-500" />
-              <span className="text-xs font-bold text-slate-700">Akses Demo:</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                id="demo-admin-btn"
-                onClick={() => handleQuickDemoLogin('agency')}
-                disabled={loading}
-                className="px-3 py-1.5 rounded-xl bg-white hover:bg-[#84B3CE]/10 text-xs font-bold text-slate-700 hover:text-[#16587B] border border-slate-200 hover:border-[#84B3CE] transition-all shadow-2xs disabled:opacity-50"
-              >
-                Admin Agensi
-              </button>
-              <button
-                type="button"
-                id="demo-creator-btn"
-                onClick={() => handleQuickDemoLogin('creator')}
-                disabled={loading}
-                className="px-3 py-1.5 rounded-xl bg-white hover:bg-[#16587B]/10 text-xs font-bold text-slate-700 hover:text-[#16587B] border border-slate-200 hover:border-[#16587B] transition-all shadow-2xs disabled:opacity-50"
-              >
-                Kreator
-              </button>
-            </div>
-          </div>
-
-          {/* Error/Success Alert */}
-          {error && (
-            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 animate-fadeIn">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-500" />
-              <span>{error}</span>
-            </div>
-          )}
-          {successMsg && (
-            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-700 animate-fadeIn">
-              <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-500" />
-              <span>{successMsg}</span>
-            </div>
-          )}
-
-          {/* Google 1-Click OAuth Sign-In */}
-          <div className="pt-1">
-            <button
-              type="button"
-              id="google-signin-btn"
-              onClick={() => {
-                window.location.href = '/auth/google';
-              }}
-              className="w-full py-3 px-4 rounded-2xl border border-slate-200 hover:border-[#16587B]/40 bg-white hover:bg-slate-50/80 text-slate-700 font-bold text-xs shadow-xs hover:shadow-md transition-all flex items-center justify-center gap-3 cursor-pointer group"
+        {/* ══ SISI KIRI (FOKUS BERKARYA BESAR & KE TENGAH - TANPA LOGO SABAR) ══ */}
+        <div className="w-full lg:w-1/2 flex flex-col justify-center items-center text-center px-6 py-10 sm:px-10 lg:px-14 relative my-auto">
+          <div className="max-w-lg mx-auto flex flex-col items-center">
+            {/* Typography Utama Besar di Tengah */}
+            <h1
+              className="text-3xl sm:text-4xl lg:text-5xl xl:text-[3.25rem] font-extrabold tracking-tight font-['Plus_Jakarta_Sans'] leading-[1.18]"
+              style={{ color: COLORS.vBlue }}
             >
-              <svg className="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" viewBox="0 0 24 24">
-                <path
-                  fill="#4285F4"
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                />
-                <path
-                  fill="#EA4335"
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                />
-              </svg>
-              <span>{isSignUp ? 'Daftar Cepat dengan Google' : 'Lanjutkan dengan Google'}</span>
-            </button>
-
-            {/* Divider */}
-            <div className="relative flex items-center justify-center my-5">
-              <div className="border-t border-slate-200 w-full" />
-              <span className="bg-white px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0">
-                atau isi formulir
+              Fokus Berkarya,{' '}
+              <span className="block mt-1 sm:mt-2 text-[#2A6E94]">
+                Kami yang Jaga Ruangmu.
               </span>
-              <div className="border-t border-slate-200 w-full" />
+            </h1>
+
+            {/* Sub-judul Penjelas */}
+            <p className="mt-5 text-sm sm:text-base lg:text-lg text-[#4F7085] leading-relaxed max-w-md mx-auto font-normal">
+              Moderasi konten berbasis AI yang memahami konteks bahasa Indonesia — lindungi komunitas kreatormu secara otomatis.
+            </p>
+
+            {/* Garis Aksen Halus */}
+            <div className="mt-7 flex items-center gap-3">
+              <div className="h-[2px] w-12 rounded-full bg-[#16587B]/20" />
+              <div className="w-2 h-2 rounded-full bg-[#16587B]/40" />
+              <div className="h-[2px] w-12 rounded-full bg-[#16587B]/20" />
             </div>
           </div>
+        </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
+        {/* ══ SISI KANAN (KOTAK SELAMAT DATANG LEBAR SETENGAH & PAS SATU LAYAR) ══ */}
+        <div className="w-full lg:w-1/2 bg-white flex flex-col justify-center items-center px-6 sm:px-10 lg:px-12 xl:px-16 py-6 sm:py-8 border-t lg:border-t-0 lg:border-l border-[#16587B]/10 relative shadow-xl lg:shadow-none min-h-screen lg:min-h-0 lg:h-full overflow-y-auto lg:overflow-y-auto">
+          <div className="w-full max-w-md sm:max-w-lg mx-auto flex flex-col justify-center my-auto">
+            
+            {/* Header Form */}
+            <div className="mb-4 text-left">
+              <h2
+                className="text-2xl sm:text-3xl font-extrabold font-['Plus_Jakarta_Sans']"
+                style={{ color: COLORS.dark }}
+              >
+                {isSignUp ? (
+                  <>Daftar <span style={{ color: COLORS.vBlue }}>Akun Baru</span></>
+                ) : (
+                  <>Selamat <span style={{ color: COLORS.vBlue }}>Datang Kembali</span></>
+                )}
+              </h2>
+              <p className="text-xs sm:text-sm text-[#4F7085] mt-1">
+                {isSignUp
+                  ? 'Mulai lindungi ruang kreatif Anda dengan moderasi AI cerdas.'
+                  : 'Masuk untuk memantau moderasi dan kesehatan konten Anda.'}
+              </p>
+            </div>
 
-            {/* Name Field (Sign Up Only) */}
-            {isSignUp && (
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                  Nama Lengkap
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Nama lengkap Anda"
-                  className="w-full px-3 py-2.5 text-xs text-slate-900 border-b-2 border-slate-200 focus:border-[#16587B] focus:outline-none transition-all placeholder:text-slate-400 bg-transparent"
-                />
+            {/* Akses Demo Cepat (Hanya saat Login) */}
+            {!isSignUp && (
+              <div
+                className="mb-3.5 rounded-xl p-2.5 sm:p-3 border transition-all"
+                style={{
+                  background: COLORS.bgSubtle,
+                  borderColor: 'rgba(22, 88, 123, 0.12)',
+                }}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="flex items-center gap-1.5 text-[11px] font-bold text-[#16587B]">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+                    Akses Demo Cepat
+                  </span>
+                  <span className="text-[10px] text-[#4F7085] font-medium">Siap demonstrasi</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleQuickDemoLogin('admin')}
+                    className="py-1.5 px-3 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer border text-center"
+                    style={{
+                      background: email === 'kalyca@sabar.com' ? COLORS.vBlue : '#FFFFFF',
+                      color: email === 'kalyca@sabar.com' ? '#FFFFFF' : COLORS.vBlue,
+                      borderColor: email === 'kalyca@sabar.com' ? COLORS.vBlue : 'rgba(22,88,123,0.2)',
+                    }}
+                  >
+                    Admin Agensi
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickDemoLogin('creator')}
+                    className="py-1.5 px-3 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer border text-center"
+                    style={{
+                      background: email === 'reza@sabar.com' ? COLORS.vBlue : '#FFFFFF',
+                      color: email === 'reza@sabar.com' ? '#FFFFFF' : COLORS.vBlue,
+                      borderColor: email === 'reza@sabar.com' ? COLORS.vBlue : 'rgba(22,88,123,0.2)',
+                    }}
+                  >
+                    Kreator Konten
+                  </button>
+                </div>
               </div>
             )}
 
-            {/* Email Field */}
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                Alamat Email
-              </label>
-              <div className="relative">
-                <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            {/* Tombol Lanjutkan dengan Google */}
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              className="w-full flex items-center justify-center gap-2.5 py-2 px-4 rounded-xl border text-xs sm:text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all duration-200 cursor-pointer mb-3.5 bg-white"
+              style={{ borderColor: 'rgba(22,88,123,0.2)' }}
+            >
+              <GoogleIcon />
+              <span>Lanjutkan dengan Google</span>
+            </button>
+
+            {/* Garis Pembatas "ATAU EMAIL" */}
+            <div className="relative flex items-center justify-center mb-3.5">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-[#16587B]/15" />
+              </div>
+              <span className="relative px-3 bg-white text-[10px] font-extrabold uppercase tracking-widest text-[#4F7085]">
+                Atau Email
+              </span>
+            </div>
+
+            {/* Notifikasi Error & Sukses */}
+            {error && (
+              <div className="mb-3 flex items-start gap-2 p-2.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>{error}</span>
+              </div>
+            )}
+            {successMsg && (
+              <div className="mb-3 flex items-start gap-2 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs">
+                <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>{successMsg}</span>
+              </div>
+            )}
+
+            {/* Formulir Input */}
+            <form onSubmit={handleSubmit} className="space-y-2.5">
+              {isSignUp && (
+                <InputField label="Nama Lengkap" icon={<User className="w-4 h-4" />}>
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Nama lengkap Anda"
+                    className="w-full px-3 py-2 text-xs sm:text-sm bg-transparent outline-none text-slate-800 placeholder-slate-400"
+                  />
+                </InputField>
+              )}
+
+              <InputField label="Email" icon={<Mail className="w-4 h-4" />}>
                 <input
                   type="email"
                   required
-                  id="login-email"
                   value={email}
-                  onChange={(e) => { setEmail(e.target.value); setError(''); }}
-                  placeholder="nama@agensi.com"
-                  className="w-full pl-10 pr-3 py-2.5 text-xs text-slate-900 border-b-2 border-slate-200 focus:border-[#16587B] focus:outline-none transition-all placeholder:text-slate-400 bg-transparent"
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="nama@email.com"
+                  className="w-full px-3 py-2 text-xs sm:text-sm bg-transparent outline-none text-slate-800 placeholder-slate-400"
                 />
-              </div>
-            </div>
+              </InputField>
 
-            {/* Password Field */}
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                Kata Sandi
-              </label>
-              <div className="relative">
-                <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <InputField label="Kata Sandi" icon={<Lock className="w-4 h-4" />}>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
-                  id="login-password"
                   value={password}
-                  onChange={(e) => { setPassword(e.target.value); setError(''); }}
-                  placeholder="••••••••"
-                  className="w-full pl-10 pr-9 py-2.5 text-xs text-slate-900 border-b-2 border-slate-200 focus:border-[#16587B] focus:outline-none transition-all placeholder:text-slate-400 bg-transparent"
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Minimal 8 karakter"
+                  className="w-full px-3 py-2 text-xs sm:text-sm bg-transparent outline-none text-slate-800 placeholder-slate-400"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                  className="pr-3 text-[#84B3CE] hover:text-[#16587B] cursor-pointer transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
-              </div>
-            </div>
+              </InputField>
 
-            {/* Remember Me & Forgot Password */}
-            {!isSignUp && (
-              <div className="flex items-center justify-between text-xs pt-1">
-                <label className="flex items-center gap-2 cursor-pointer text-slate-500 text-xs">
+              {isSignUp && (
+                <InputField label="Konfirmasi Sandi" icon={<Lock className="w-4 h-4" />}>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={passwordConfirmation}
+                    onChange={(e) => setPasswordConfirmation(e.target.value)}
+                    placeholder="Ulangi kata sandi"
+                    className="w-full px-3 py-2 text-xs sm:text-sm bg-transparent outline-none text-slate-800 placeholder-slate-400"
+                  />
+                </InputField>
+              )}
+
+              {/* Ingat Saya & Lupa Password */}
+              <div className="flex items-center justify-between pt-0.5">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
                   <input
                     type="checkbox"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-3.5 h-3.5 rounded border-slate-300 text-[#16587B] focus:ring-[#16587B]"
+                    checked={remember}
+                    onChange={(e) => setRemember(e.target.checked)}
+                    className="w-3.5 h-3.5 rounded text-[#16587B] accent-[#16587B] cursor-pointer"
                   />
-                  <span>Ingat Saya</span>
+                  <span className="text-xs text-[#4F7085]">Ingat saya</span>
                 </label>
-                <a href="#forgot" className="text-xs font-semibold text-[#16587B] hover:underline">
-                  Lupa Password?
-                </a>
+                {!isSignUp && (
+                  <a
+                    href="#forgot"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      alert('Silakan hubungi administrator: admin@sabar.com untuk reset password.');
+                    }}
+                    className="text-xs font-semibold text-[#16587B] hover:underline"
+                  >
+                    Lupa Password?
+                  </a>
+                )}
               </div>
-            )}
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              id="login-submit-btn"
-              disabled={loading}
-              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#84B3CE] to-[#16587B] hover:from-[#73a2bd] hover:to-[#0f4663] text-[#F5EEDD] text-xs font-bold transition-all shadow-lg shadow-[#16587B]/25 flex items-center justify-center gap-2 disabled:opacity-50 mt-4 cursor-pointer"
-            >
-              {loading ? (
-                <span className="animate-spin w-4 h-4 border-2 border-[#F5EEDD] border-t-transparent rounded-full" />
-              ) : (
-                <>
-                  <span>{isSignUp ? 'DAFTAR SEKARANG' : 'MASUK KE DASHBOARD'}</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          </form>
+              {/* Tombol Submit */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-2.5 px-4 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-md hover:shadow-lg active:scale-[0.99] disabled:opacity-60 mt-1"
+                style={{
+                  background: COLORS.vBlue,
+                  color: COLORS.merino,
+                }}
+              >
+                {loading ? (
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <span>{isSignUp ? 'Buat Akun Sekarang' : 'Masuk ke Dashboard'}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </form>
 
-          {/* Toggle Login / Register */}
-          <div className="text-center pt-6 border-t border-slate-100">
-            <p className="text-xs text-slate-500">
-              {isSignUp ? 'Sudah memiliki akun?' : 'Belum punya akun?'}{' '}
+            {/* Toggle Masuk / Daftar */}
+            <div className="mt-3.5 text-center text-xs text-[#4F7085]">
+              {isSignUp ? 'Sudah punya akun?' : 'Belum punya akun?'}{' '}
               <button
                 type="button"
-                onClick={() => { setIsSignUp(!isSignUp); setError(''); setSuccessMsg(''); }}
-                className="font-bold text-[#16587B] hover:underline"
+                onClick={() => {
+                  setIsSignUp(!isSignUp);
+                  setError('');
+                  setSuccessMsg('');
+                }}
+                className="font-bold cursor-pointer hover:underline text-[#16587B]"
               >
-                {isSignUp ? 'Login disini' : 'Daftar Akun Baru'}
+                {isSignUp ? 'Masuk di sini' : 'Daftar gratis'}
               </button>
-            </p>
+            </div>
+
+            {/* Footer Copyright Ringkas */}
+            <div className="mt-3 pt-2 border-t border-[#16587B]/10 text-center text-[10px] text-[#4F7085]/60">
+              © 2026 SABAR — Sistem Moderasi Berbasis AI Bahasa Indonesia
+            </div>
+
           </div>
-
-        </div>
-
-        {/* Footer */}
-        <div className="text-center text-[11px] text-slate-400 pt-6">
-          <p>© 2026 SABAR — Sistem Moderation-as-a-Service Berbasis Context-Aware NLP.</p>
         </div>
 
       </div>
