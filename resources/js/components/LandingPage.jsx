@@ -95,136 +95,185 @@ const HeroHeader = ({ onLoginClick, onPricingClick, onDemoClick }) => {
   }, []);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6">
-      <nav
-        className={cn(
-          'mx-auto mt-3 transition-all duration-500 rounded-full border shadow-md',
-          scrolled
-            ? 'max-w-4xl border-[#16587B]/20 bg-white/95 backdrop-blur-md shadow-lg shadow-[#16587B]/10 px-6 py-2'
-            : 'max-w-6xl border-[#16587B]/15 bg-white/90 backdrop-blur-sm px-6 py-2.5'
-        )}
-      >
-        <div className="flex items-center justify-between">
-          {/* Logo */}
-          <a href="#" className="flex items-center gap-2.5 group">
-            <div className="relative w-8 h-8 rounded-xl overflow-hidden shadow-md shadow-[#16587B]/25 group-hover:scale-105 transition-transform flex items-center justify-center border border-[#16587B]/20 bg-[#1a4065]">
-              <img 
-                src="/sabar-logo-cropped.png" 
-                alt="Logo SABAR" 
-                className="w-full h-full object-cover" 
-              />
-            </div>
-            <span className="text-lg font-extrabold tracking-wider text-[#16587B] font-['Plus_Jakarta_Sans']">SABAR</span>
-          </a>
+    <>
+      <header className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6">
+        <nav
+          className={cn(
+            'mx-auto mt-3 transition-all duration-500 rounded-full border shadow-md',
+            scrolled
+              ? 'max-w-4xl border-[#16587B]/20 bg-white/95 backdrop-blur-md shadow-lg shadow-[#16587B]/10 px-6 py-2'
+              : 'max-w-6xl border-[#16587B]/15 bg-white/90 backdrop-blur-sm px-6 py-2.5'
+          )}
+        >
+          <div className="flex items-center justify-between">
+            {/* Logo */}
+            <a href="#" className="flex items-center gap-2.5 group">
+              <div className="relative w-8 h-8 rounded-xl overflow-hidden shadow-md shadow-[#16587B]/25 group-hover:scale-105 transition-transform flex items-center justify-center border border-[#16587B]/20 bg-[#1a4065]">
+                <img 
+                  src="/sabar-logo-cropped.png" 
+                  alt="Logo SABAR" 
+                  className="w-full h-full object-cover" 
+                />
+              </div>
+              <span className="text-lg font-extrabold tracking-wider text-[#16587B] font-['Plus_Jakarta_Sans']">SABAR</span>
+            </a>
 
-          {/* Menu Desktop */}
-          <ul className="hidden lg:flex items-center gap-8">
-            {menuItems.map((item) => (
-              <li key={item.name}>
-                {item.name === 'Harga' ? (
-                  <button
-                    onClick={onPricingClick}
-                    className="text-sm font-semibold text-[#16587B]/80 hover:text-[#16587B] transition-colors duration-200 cursor-pointer bg-transparent border-none p-0"
-                  >
-                    {item.name}
-                  </button>
-                ) : item.name === 'Demo AI' ? (
-                  <button
-                    onClick={onDemoClick}
-                    className="text-sm font-semibold text-[#16587B]/80 hover:text-[#16587B] transition-colors duration-200 cursor-pointer bg-transparent border-none p-0"
-                  >
-                    {item.name}
-                  </button>
-                ) : (
-                  <a
-                    href={item.href}
-                    className="text-sm font-semibold text-[#16587B]/80 hover:text-[#16587B] transition-colors duration-200"
-                  >
-                    {item.name}
-                  </a>
-                )}
-              </li>
-            ))}
-          </ul>
+            {/* Menu Desktop */}
+            <ul className="hidden lg:flex items-center gap-8">
+              {menuItems.map((item) => (
+                <li key={item.name}>
+                  {item.name === 'Harga' ? (
+                    <button
+                      onClick={onPricingClick}
+                      className="text-sm font-semibold text-[#16587B]/80 hover:text-[#16587B] transition-colors duration-200 cursor-pointer bg-transparent border-none p-0"
+                    >
+                      {item.name}
+                    </button>
+                  ) : item.name === 'Demo AI' ? (
+                    <button
+                      onClick={onDemoClick}
+                      className="text-sm font-semibold text-[#16587B]/80 hover:text-[#16587B] transition-colors duration-200 cursor-pointer bg-transparent border-none p-0"
+                    >
+                      {item.name}
+                    </button>
+                  ) : (
+                    <a
+                      href={item.href}
+                      className="text-sm font-semibold text-[#16587B]/80 hover:text-[#16587B] transition-colors duration-200"
+                    >
+                      {item.name}
+                    </a>
+                  )}
+                </li>
+              ))}
+            </ul>
 
-          {/* Tombol CTA Desktop */}
-          <div className="hidden lg:flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onLoginClick}
-              className="text-[#16587B] font-bold hover:bg-[#F5EEDD]/80"
-            >
-              Masuk
-            </Button>
-            <Button
-              variant="default"
-              size="sm"
-              onClick={onLoginClick}
-              className="bg-[#16587B] text-[#F5EEDD] hover:bg-[#0e3f59] font-bold shadow-md shadow-[#16587B]/20 rounded-full px-5"
-            >
-              Daftar Gratis
-              <ArrowRight className="ml-1.5 w-3.5 h-3.5" />
-            </Button>
-          </div>
-
-          {/* Hamburger Mobile */}
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="lg:hidden p-2 text-[#16587B] hover:text-[#0e3f59]"
-          >
-            {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-        </div>
-
-        {/* Menu Mobile Dropdown */}
-        {menuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="lg:hidden border-t border-[#16587B]/15 mt-3 pt-3 pb-2 space-y-3"
-          >
-            {menuItems.map((item) => (
-              item.name === 'Harga' ? (
-                <button
-                  key={item.name}
-                  onClick={() => { setMenuOpen(false); onPricingClick(); }}
-                  className="block w-full text-left text-sm font-semibold text-[#16587B] hover:text-[#0e3f59] py-1 px-2 bg-transparent border-none cursor-pointer"
-                >
-                  {item.name}
-                </button>
-              ) : item.name === 'Demo AI' ? (
-                <button
-                  key={item.name}
-                  onClick={() => { setMenuOpen(false); onDemoClick(); }}
-                  className="block w-full text-left text-sm font-semibold text-[#16587B] hover:text-[#0e3f59] py-1 px-2 bg-transparent border-none cursor-pointer"
-                >
-                  {item.name}
-                </button>
-              ) : (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  onClick={() => setMenuOpen(false)}
-                  className="block text-sm font-semibold text-[#16587B] hover:text-[#0e3f59] py-1 px-2"
-                >
-                  {item.name}
-                </a>
-              )
-            ))}
-            <div className="flex gap-3 pt-2">
-              <Button variant="outline" size="sm" onClick={onLoginClick} className="flex-1 font-bold border-[#16587B]/30 text-[#16587B]">
+            {/* Tombol CTA Desktop */}
+            <div className="hidden lg:flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onLoginClick}
+                className="text-[#16587B] font-bold hover:bg-[#F5EEDD]/80"
+              >
                 Masuk
               </Button>
-              <Button variant="default" size="sm" onClick={onLoginClick} className="flex-1 font-bold bg-[#16587B] text-[#F5EEDD]">
+              <Button
+                variant="default"
+                size="sm"
+                onClick={onLoginClick}
+                className="bg-[#16587B] text-[#F5EEDD] hover:bg-[#0e3f59] font-bold shadow-md shadow-[#16587B]/20 rounded-full px-5"
+              >
                 Daftar Gratis
+                <ArrowRight className="ml-1.5 w-3.5 h-3.5" />
               </Button>
             </div>
+
+            {/* Hamburger Mobile */}
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              aria-label={menuOpen ? 'Tutup menu' : 'Buka menu'}
+              className={`lg:hidden p-2 rounded-xl transition-colors ${
+                menuOpen
+                  ? 'bg-[#16587B]/10 text-[#16587B]'
+                  : 'text-[#16587B] hover:bg-[#16587B]/8'
+              }`}
+            >
+              {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
+        </nav>
+      </header>
+
+      {/* ── MOBILE MENU DRAWER (di luar nav pill agar tidak terpotong) ── */}
+      {menuOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-40 bg-[#0D2738]/30 backdrop-blur-sm lg:hidden"
+            onClick={() => setMenuOpen(false)}
+          />
+          {/* Drawer Panel */}
+          <motion.div
+            initial={{ opacity: 0, y: -16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -16 }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            className="fixed top-0 left-0 right-0 z-50 lg:hidden"
+            style={{ paddingTop: '76px' }}
+          >
+            <div className="mx-4 rounded-3xl border border-[#16587B]/15 bg-white/98 backdrop-blur-xl shadow-2xl shadow-[#16587B]/15 overflow-hidden">
+              {/* Header drawer */}
+              <div className="flex items-center justify-between px-5 py-4 border-b border-[#16587B]/10">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg overflow-hidden border border-[#16587B]/20 bg-[#1a4065] flex items-center justify-center">
+                    <img src="/sabar-logo-cropped.png" alt="SABAR" className="w-full h-full object-cover" />
+                  </div>
+                  <span className="text-base font-extrabold text-[#16587B] font-['Plus_Jakarta_Sans']">SABAR</span>
+                </div>
+                <button
+                  onClick={() => setMenuOpen(false)}
+                  className="p-1.5 rounded-xl bg-[#16587B]/8 text-[#16587B] hover:bg-[#16587B]/15 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Nav Links */}
+              <nav className="px-3 py-3 space-y-1">
+                {menuItems.map((item) => (
+                  item.name === 'Harga' ? (
+                    <button
+                      key={item.name}
+                      onClick={() => { setMenuOpen(false); onPricingClick(); }}
+                      className="w-full text-left flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-semibold text-[#0D2738] hover:bg-[#F5EEDD] hover:text-[#16587B] transition-colors cursor-pointer"
+                    >
+                      <span>{item.name}</span>
+                      <ArrowRight className="w-4 h-4 text-[#16587B]/40" />
+                    </button>
+                  ) : item.name === 'Demo AI' ? (
+                    <button
+                      key={item.name}
+                      onClick={() => { setMenuOpen(false); onDemoClick(); }}
+                      className="w-full text-left flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-semibold text-[#0D2738] hover:bg-[#F5EEDD] hover:text-[#16587B] transition-colors cursor-pointer"
+                    >
+                      <span>{item.name}</span>
+                      <ArrowRight className="w-4 h-4 text-[#16587B]/40" />
+                    </button>
+                  ) : (
+                    <a
+                      key={item.name}
+                      href={item.href}
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-semibold text-[#0D2738] hover:bg-[#F5EEDD] hover:text-[#16587B] transition-colors"
+                    >
+                      <span>{item.name}</span>
+                      <ArrowRight className="w-4 h-4 text-[#16587B]/40" />
+                    </a>
+                  )
+                ))}
+              </nav>
+
+              {/* CTA Buttons */}
+              <div className="px-4 pb-5 pt-2 flex gap-3 border-t border-[#16587B]/10">
+                <button
+                  onClick={() => { setMenuOpen(false); onLoginClick(); }}
+                  className="flex-1 py-2.5 rounded-full border-2 border-[#16587B]/30 text-[#16587B] text-sm font-bold hover:bg-[#F5EEDD] transition-colors"
+                >
+                  Masuk
+                </button>
+                <button
+                  onClick={() => { setMenuOpen(false); onLoginClick(); }}
+                  className="flex-1 py-2.5 rounded-full bg-[#16587B] text-[#F5EEDD] text-sm font-bold hover:bg-[#104460] transition-colors shadow-md shadow-[#16587B]/25"
+                >
+                  Daftar Gratis
+                </button>
+              </div>
+            </div>
           </motion.div>
-        )}
-      </nav>
-    </header>
+        </>
+      )}
+    </>
   );
 };
 
