@@ -4,12 +4,15 @@ import {
   Coffee, 
   Search, 
   Sparkles,
-  ExternalLink,
-  ShieldAlert,
-  CheckCircle2,
+  ShieldCheck,
   Sun,
   Moon,
-  Menu
+  Menu,
+  PanelLeftClose,
+  PanelLeft,
+  LayoutDashboard,
+  MessageSquareText,
+  BarChart3
 } from 'lucide-react';
 
 export default function Navbar({ 
@@ -18,119 +21,140 @@ export default function Navbar({
   connectedAccount, 
   stressLevel, 
   activeTab, 
+  setActiveTab,
   isDarkMode, 
   toggleDarkMode,
-  onToggleMobileSidebar
+  onToggleMobileSidebar,
+  isSidebarCollapsed,
+  onToggleDesktopSidebar
 }) {
   const isHighStress = stressLevel >= 65;
 
-  const getPageTitle = () => {
-    switch (activeTab) {
-      case "comments": return "Log Komentar Live";
-      case "analytics": return "Analisis Sentimen & NLP";
-      case "limits": return "Konfigurasi Ambang Batas Stres";
-      case "security": return "Aturan Filter & Kata Terlarang";
-      default: return "Ikhtisar Dashboard Moderasi";
-    }
-  };
+  const navItems = [
+    { id: 'dashboard', label: 'Ikhtisar', icon: LayoutDashboard },
+    { id: 'comments', label: 'Log Komentar', icon: MessageSquareText },
+    { id: 'analytics', label: 'Analisis NLP', icon: BarChart3 },
+  ];
 
   return (
-    <header className={`h-16 px-4 sm:px-6 lg:px-8 border-b transition-all duration-300 flex items-center justify-between sticky top-0 z-30 ${
-      isDarkMode 
-        ? 'bg-[#081724]/90 backdrop-blur-md border-[#16587B]/25 text-white' 
-        : 'bg-white/90 backdrop-blur-md border-[#16587B]/15 text-[#0D2738]'
-    }`}>
-      
-      {/* Left: Mobile Hamburger & Breadcrumbs */}
-      <div className="flex items-center gap-3">
-        {/* Mobile Hamburger Toggle */}
-        <button
-          onClick={onToggleMobileSidebar}
-          className={`p-2 rounded-xl lg:hidden transition-colors cursor-pointer ${
-            isDarkMode 
-              ? 'text-[#84B3CE] hover:text-white hover:bg-white/10' 
-              : 'text-[#16587B] hover:text-[#0D2738] hover:bg-[#16587B]/10'
-          }`}
-          aria-label="Buka Menu"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
-
-        <div>
-          <h1 className={`text-xs sm:text-sm font-extrabold font-['Plus_Jakarta_Sans'] tracking-tight ${
-            isDarkMode ? 'text-[#F5EEDD]' : 'text-[#16587B]'
-          }`}>
-            {getPageTitle()}
-          </h1>
-          <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px]">
-            <span className={isDarkMode ? 'text-[#84B3CE]/60' : 'text-[#4F7085]'}>Platform</span>
-            <span className={isDarkMode ? 'text-[#84B3CE]/40' : 'text-[#84B3CE]'}>/</span>
-            <span className={`font-semibold ${isDarkMode ? 'text-[#84B3CE]' : 'text-[#0D2738]'}`}>
-              {connectedAccount?.handle || "SABAR Official"}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Right: Quick Actions & Status */}
-      <div className="flex items-center gap-2 sm:gap-3">
+    <div className="sticky top-3 sm:top-4 z-30 px-3 sm:px-6 lg:px-8 mb-5 sm:mb-6 pointer-events-none">
+      <header className={`pointer-events-auto max-w-7xl mx-auto rounded-2xl sm:rounded-full border transition-all duration-300 shadow-md sm:shadow-lg flex items-center justify-between px-3 sm:px-5 py-2 sm:py-2.5 backdrop-blur-xl ${
+        isDarkMode 
+          ? 'bg-[#0B1E2E]/90 border-white/10 shadow-black/30 text-white' 
+          : 'bg-white/95 border-slate-200/80 shadow-slate-900/5 text-[#0D2738]'
+      }`}>
         
-        {/* Live Filter Indicator */}
-        <div className={`hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold border ${
-          isDarkMode 
-            ? 'bg-emerald-950/40 border-emerald-500/25 text-emerald-300' 
-            : 'bg-emerald-50 border-emerald-200 text-emerald-800'
-        }`}>
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.7)]"></span>
-          <span>Perisai AI Aktif</span>
+        {/* Left: Sidebar Toggle + Brand / Breadcrumb */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Mobile Hamburger Button */}
+          <button
+            onClick={onToggleMobileSidebar}
+            className={`p-2 rounded-xl lg:hidden transition-colors cursor-pointer ${
+              isDarkMode 
+                ? 'text-slate-300 hover:text-white hover:bg-white/10' 
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+            }`}
+            aria-label="Buka Menu"
+            title="Buka Menu Navigasi"
+          >
+            <Menu className="w-4 h-4 sm:w-5 sm:h-5" />
+          </button>
+
+          {/* Desktop Sidebar Collapse / Expand Toggle */}
+          <button
+            onClick={onToggleDesktopSidebar}
+            className={`hidden lg:flex items-center justify-center p-2 rounded-full transition-all cursor-pointer ${
+              isDarkMode 
+                ? 'text-slate-400 hover:text-white hover:bg-white/10' 
+                : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+            }`}
+            aria-label={isSidebarCollapsed ? "Buka Sidebar" : "Sembunyikan Sidebar"}
+            title={isSidebarCollapsed ? "Tampilkan Sidebar Lengkap" : "Ciutkan Sidebar (Tampilan Luas)"}
+          >
+            {isSidebarCollapsed ? (
+              <PanelLeft className="w-4 h-4 text-sky-500 transition-transform hover:scale-110" />
+            ) : (
+              <PanelLeftClose className="w-4 h-4 transition-transform hover:scale-110" />
+            )}
+          </button>
         </div>
 
-        {/* Asisten Rehat Action Button */}
-        <button
-          onClick={onOpenRehat}
-          className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-full text-xs font-bold transition-all shadow-md cursor-pointer ${
-            isHighStress
-              ? 'bg-rose-600 text-white hover:bg-rose-700 animate-bounce'
-              : 'bg-[#16587B] text-[#F5EEDD] hover:bg-[#104460] shadow-[#16587B]/20 hover:scale-[1.02] active:scale-[0.98]'
-          }`}
-        >
-          <Coffee className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Asisten Rehat</span>
-          <span className="sm:hidden">Rehat</span>
-          {isHighStress && (
-            <span className="w-2 h-2 rounded-full bg-white animate-ping"></span>
-          )}
-        </button>
+        {/* Center: Clean Nav Shortcuts (Image 3 Inspired Pills) */}
+        {setActiveTab && (
+          <nav className="hidden md:flex items-center gap-1 bg-slate-100/80 dark:bg-white/5 p-1 rounded-full border border-slate-200/50 dark:border-white/5">
+            {navItems.map((item) => {
+              const isActive = activeTab === item.id;
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                    isActive 
+                      ? isDarkMode 
+                        ? 'bg-[#16587B] text-white shadow-xs font-bold' 
+                        : 'bg-white text-[#16587B] shadow-xs font-bold'
+                      : isDarkMode 
+                        ? 'text-slate-400 hover:text-white hover:bg-white/5' 
+                        : 'text-slate-600 hover:text-[#0D2738] hover:bg-white/60'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+        )}
 
-        {/* Toggle Dark Mode Button */}
-        <button
-          onClick={toggleDarkMode}
-          title={isDarkMode ? "Mode Terang" : "Mode Gelap"}
-          className={`p-2 rounded-xl transition-all cursor-pointer ${
-            isDarkMode 
-              ? 'text-[#84B3CE] hover:text-[#F5EEDD] hover:bg-white/10' 
-              : 'text-[#4F7085] hover:text-[#16587B] hover:bg-[#16587B]/10'
-          }`}
-        >
-          {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-        </button>
+        {/* Right: Dark Mode Toggle and Action Button */}
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
+          {/* Dark / Light Mode Toggle */}
+          <button
+            onClick={toggleDarkMode}
+            title={isDarkMode ? "Ganti ke Mode Terang" : "Ganti ke Mode Gelap"}
+            className={`p-2 rounded-full transition-all cursor-pointer ${
+              isDarkMode 
+                ? 'text-slate-400 hover:text-white hover:bg-white/10' 
+                : 'text-slate-600 hover:text-[#0D2738] hover:bg-slate-100'
+            }`}
+            aria-label="Toggle Mode Gelap/Terang"
+          >
+            {isDarkMode ? <Sun className="w-4 h-4 text-amber-300" /> : <Moon className="w-4 h-4" />}
+          </button>
 
-        {/* Notification Bell */}
-        <button 
-          title="Notifikasi"
-          className={`p-2 rounded-xl transition-all relative cursor-pointer ${
-            isDarkMode 
-              ? 'text-[#84B3CE] hover:text-white hover:bg-white/10' 
-              : 'text-[#4F7085] hover:text-[#16587B] hover:bg-[#16587B]/10'
-          }`}
-        >
-          <Bell className="w-4 h-4" />
-          {isHighStress && (
-            <span className="w-2 h-2 rounded-full bg-rose-500 absolute top-1.5 right-1.5"></span>
-          )}
-        </button>
+          {/* Notification Alert Bell */}
+          <button 
+            title="Notifikasi Sistem"
+            className={`p-2 rounded-full transition-all relative cursor-pointer ${
+              isDarkMode 
+                ? 'text-slate-400 hover:text-white hover:bg-white/10' 
+                : 'text-slate-600 hover:text-[#0D2738] hover:bg-slate-100'
+            }`}
+            aria-label="Notifikasi"
+          >
+            <Bell className="w-4 h-4" />
+            {isHighStress && (
+              <span className="w-2 h-2 rounded-full bg-rose-500 absolute top-1.5 right-1.5 animate-ping" />
+            )}
+          </button>
 
-      </div>
-    </header>
+          {/* Primary Action Button (Image 3 Inspired Vibrant Blue Pill) */}
+          <button
+            onClick={onOpenRehat}
+            className={`flex items-center gap-1.5 px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs font-bold transition-all shadow-md cursor-pointer hover:scale-[1.02] active:scale-[0.98] ${
+              isHighStress
+                ? 'bg-rose-600 text-white hover:bg-rose-700 shadow-rose-600/30 animate-bounce'
+                : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-blue-500/25'
+            }`}
+            title="Buka Asisten Rehat Psikologis"
+          >
+            <Coffee className="w-3.5 h-3.5" />
+            <span className="font-semibold tracking-wide">Asisten Rehat</span>
+          </button>
+        </div>
+
+      </header>
+    </div>
   );
 }

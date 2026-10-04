@@ -20,6 +20,7 @@ export default function SabarLogo({
   showSubtitle = true,
   showBadge = true,
   badgeText = 'Pro',
+  isDarkMode = false,
   className = '',
 }) {
   // Ukuran container icon
@@ -40,21 +41,18 @@ export default function SabarLogo({
   };
 
   // Konfigurasi Tema Warna
-  // 1. 'navy-gold': Tema Asli Poster (Navy `#0B1D33` + Champagne Gold `#F4EAD2`)
-  // 2. 'slate-emerald': Tema Dashboard (Slate `#0F172A` + Emerald `#34D399`)
-  // 3. 'gradient': Gradient mewah gabungan Emerald & Gold
   let bgClass = 'bg-[#0B1D33] border border-[#F4EAD2]/20 shadow-sm';
   let strokeColor = '#F4EAD2';
-  let titleColor = 'text-[#F4EAD2]'; // Emas khas brand SABAR
-  let subtitleColor = 'text-[#F4EAD2]/65';
-  let badgeClass = 'bg-amber-500/10 text-amber-300 border-amber-500/30';
+  let titleColor = isDarkMode ? 'text-[#F5EEDD]' : 'text-[#16587B]';
+  let subtitleColor = isDarkMode ? 'text-[#84B3CE]/80' : 'text-[#4F7085]';
+  let badgeClass = isDarkMode ? 'bg-amber-500/15 text-amber-300 border-amber-500/30' : 'bg-[#16587B]/10 text-[#16587B] border-[#16587B]/20';
 
   if (theme === 'slate-emerald') {
     bgClass = 'bg-slate-900 border border-emerald-500/20 shadow-sm';
-    strokeColor = '#34D399'; // Emerald-400
-    titleColor = 'text-emerald-400';
-    subtitleColor = 'text-slate-400';
-    badgeClass = 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30';
+    strokeColor = '#34D399';
+    titleColor = isDarkMode ? 'text-emerald-400' : 'text-emerald-700';
+    subtitleColor = isDarkMode ? 'text-slate-400' : 'text-slate-600';
+    badgeClass = 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30';
   } else if (theme === 'gradient') {
     bgClass = 'bg-gradient-to-br from-[#0B1D33] via-[#0F294A] to-[#0A1628] border border-amber-400/30 shadow-md';
     strokeColor = 'url(#sabarGoldGrad)';

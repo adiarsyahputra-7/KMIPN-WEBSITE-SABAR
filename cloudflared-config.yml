@@ -1,0 +1,9 @@
+tunnel: 3b9832e5-db9c-4cc1-ba7a-49a061c3a7c0
+credentials-file: C:\Users\MyBook Hype\.cloudflared\3b9832e5-db9c-4cc1-ba7a-49a061c3a7c0.json
+
+ingress:
+  - hostname: sabar.life
+    service: http://localhost:8000
+  - hostname: www.sabar.life
+    service: http://localhost:8000
+  - service: http_status:404
