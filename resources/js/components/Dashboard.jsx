@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
-import StatsCards from './StatsCards';
+import HeroOverview from './HeroOverview';
 import StressGauge from './StressGauge';
 import LiveCommentAnalyzer from './LiveCommentAnalyzer';
 import CommentTable from './CommentTable';
@@ -250,80 +250,14 @@ export default function Dashboard({ user, onLogout }) {
         {/* Page Content */}
         <main className="px-3 sm:px-6 lg:px-8 space-y-6 max-w-7xl w-full mx-auto pb-28 lg:pb-8">
 
-          {/* Elongated Hero Banner (Image 2 Redesign) */}
-          <div 
-            id="dashboard-section"
-            className={`relative overflow-hidden rounded-3xl border transition-all duration-300 p-6 sm:p-8 lg:p-9 ${
-              isDarkMode 
-                ? 'bg-gradient-to-r from-[#0B1E2E] via-[#0E283E] to-[#0B1E2E] border-white/10 shadow-lg shadow-black/25' 
-                : 'bg-gradient-to-r from-white via-white to-sky-50/60 border-slate-200/80 shadow-xs'
-            }`}
-          >
-            {/* Ambient Background Glow Spot */}
-            <div className={`absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl pointer-events-none transition-opacity duration-300 ${
-              isDarkMode ? 'bg-sky-500/10' : 'bg-sky-500/5'
-            }`} />
-            
-            <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-              <div className="space-y-3 max-w-3xl">
-                {/* Status Chips */}
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className={`text-[11px] font-bold px-3 py-1 rounded-full border tracking-wide uppercase ${
-                    isDarkMode 
-                      ? 'text-sky-300 bg-sky-950/60 border-sky-800/50' 
-                      : 'text-[#16587B] bg-[#16587B]/10 border-[#16587B]/20'
-                  }`}>
-                    {user?.plan || 'Agency Pro'}
-                  </span>
-
-                  <div className={`flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full border ${
-                    isDarkMode 
-                      ? 'bg-white/5 border-white/10 text-slate-300' 
-                      : 'bg-slate-100/80 border-slate-200/80 text-slate-700'
-                  }`}>
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_6px_rgba(16,185,129,0.8)] shrink-0" />
-                    <span>
-                      Akun Terpantau:{' '}
-                      <strong className={`font-bold ${isDarkMode ? 'text-white' : 'text-[#0D2738]'}`}>
-                        {connectedAccount?.handle || 'Belum ada akun terhubung'}
-                      </strong>
-                    </span>
-                  </div>
-                </div>
-
-                {/* Big Bold Headline ("halo kalychanya lebih besar dengan kotak memanjang gitu") */}
-                <h1 className={`text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight font-['Plus_Jakarta_Sans'] ${
-                  isDarkMode ? 'text-white' : 'text-[#0D2738]'
-                }`}>
-                  Halo, {user?.name || 'Kalyca Admin'}
-                </h1>
-
-                {/* Anti-slop Subtitle */}
-                <p className={`text-xs sm:text-sm leading-relaxed max-w-2xl ${
-                  isDarkMode ? 'text-slate-300' : 'text-slate-600'
-                }`}>
-                  Sistem aktif menyaring ujaran kebencian & sarkasme secara real-time guna melindungi kenyamanan mental pengelola akun.
-                </p>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-3 shrink-0 pt-2 lg:pt-0">
-                <button
-                  onClick={() => setIsSocialModalOpen(true)}
-                  className={`px-4 sm:px-5 py-2.5 rounded-full text-xs font-bold border transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] ${
-                    isDarkMode 
-                      ? 'bg-white/5 hover:bg-white/10 text-white border-white/15' 
-                      : 'bg-white hover:bg-slate-50 text-[#16587B] border-slate-200/80 shadow-xs'
-                  }`}
-                >
-                  {connectedAccount ? 'Ganti Akun Target' : '+ Hubungkan Akun'}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Stats Cards (Directly below Hero Banner, Adaptive Responsive Grid) */}
-          <StatsCards stats={stats} isDarkMode={isDarkMode} />
+          {/* Unified Bento Hero & Stats Overview Card */}
+          <HeroOverview
+            user={user}
+            connectedAccount={connectedAccount}
+            stats={stats}
+            isDarkMode={isDarkMode}
+            onOpenConnect={() => setIsSocialModalOpen(true)}
+          />
 
           {/* Real-time Web Push Notification Bar */}
           <PushNotificationWidget isDarkMode={isDarkMode} />
