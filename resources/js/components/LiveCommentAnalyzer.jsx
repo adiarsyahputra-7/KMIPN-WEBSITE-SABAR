@@ -192,10 +192,7 @@ export default function LiveCommentAnalyzer({ onAddComment, isDarkMode }) {
               : 'bg-[#FAF7F2]/60 border border-[#16587B]/20 text-[#0D2738] placeholder-[#4F7085]/60 focus:bg-white focus:border-[#16587B]'
           }`}
         />
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-          <p className={`text-[11px] ${isDarkMode ? 'text-[#84B3CE]/60' : 'text-[#4F7085]'}`}>
-            * Menganalisis kata slang, leet speak (angka/simbol), dan pola sarkasme secara kontekstual.
-          </p>
+        <div className="flex items-center justify-end">
           <button
             type="submit"
             disabled={!inputText.trim() || analyzing}

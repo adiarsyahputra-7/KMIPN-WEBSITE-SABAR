@@ -67,9 +67,6 @@ export default function StressGauge({ stressLevel, avgSeverity, toxicCount, tota
             Kalkulator Beban Psikologis Pengelola Akun
           </p>
         </div>
-        <span className={`px-3 py-0.5 rounded-full text-xs font-bold border ${statusConfig.badgeClass}`}>
-          {statusConfig.badge}
-        </span>
       </div>
 
       <div className="flex flex-col sm:flex-row items-center gap-6 pt-2">

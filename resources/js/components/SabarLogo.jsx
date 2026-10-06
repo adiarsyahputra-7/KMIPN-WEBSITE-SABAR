@@ -18,7 +18,7 @@ export default function SabarLogo({
   size = 'md',
   theme = 'navy-gold',
   showSubtitle = true,
-  showBadge = true,
+  showBadge = false,
   badgeText = 'Pro',
   isDarkMode = false,
   className = '',

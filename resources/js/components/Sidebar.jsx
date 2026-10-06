@@ -96,7 +96,7 @@ export default function Sidebar({
               theme={isDarkMode ? 'navy-gold' : 'navy-gold'} 
               size="md" 
               showSubtitle={true}
-              showBadge={true}
+              showBadge={false}
               badgeText="Pro"
               isDarkMode={isDarkMode}
             />

@@ -162,14 +162,6 @@ export default function HeroOverview({
           <div className="space-y-3.5 max-w-3xl">
             {/* Status Chips */}
             <div className="flex flex-wrap items-center gap-2">
-              <span className={`text-[11px] font-bold px-3 py-1 rounded-full border tracking-wide uppercase transition-colors ${
-                isDarkMode 
-                  ? 'text-sky-300 bg-sky-950/60 border-sky-800/50' 
-                  : 'text-[#16587B] bg-[#16587B]/10 border-[#16587B]/20'
-              }`}>
-                {user?.plan || 'CREATOR PRO'}
-              </span>
-
               <div className={`flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full border transition-colors ${
                 isDarkMode 
                   ? 'bg-white/5 border-white/10 text-slate-300' 
@@ -182,16 +174,6 @@ export default function HeroOverview({
                     {connectedAccount?.handle || '@folernatyn'}
                   </strong>
                 </span>
-              </div>
-
-              {/* Extra Live Protection Pill */}
-              <div className={`hidden sm:inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full border transition-colors ${
-                isDarkMode
-                  ? 'bg-emerald-950/40 text-emerald-300 border-emerald-800/40'
-                  : 'bg-emerald-50/80 text-emerald-700 border-emerald-200/60'
-              }`}>
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                <span>Proteksi Realtime Aktif</span>
               </div>
             </div>
 
